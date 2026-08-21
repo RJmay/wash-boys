@@ -60,3 +60,15 @@ export const BUSINESS = {
 
 /** Bundle rule: 15% off once two or more bookable services are selected. */
 export const BUNDLE_MIN_SERVICES = 2;
+
+/** True while a value is still a `[PLACEHOLDER]` from the launch checklist. */
+export function isPlaceholder(value: string): boolean {
+  return value.startsWith("[") && value.endsWith("]");
+}
+
+/**
+ * Guards against shipping a dead `tel:` link. While the number is unset the UI
+ * renders the placeholder as plain text - visibly broken beats silently
+ * broken, and it cannot survive a launch review.
+ */
+export const PHONE_CONFIGURED = !isPlaceholder(BUSINESS.phone.tel);

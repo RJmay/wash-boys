@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wash Boys — DL flyer</title>
+
+    <!--
+      DL flyer print template — SPEC §11, content per FLYER_BRIEF.md.
+
+      Trim 99 x 210mm, 3mm bleed all round, so the artwork board is
+      105 x 216mm. Two pages: front then back.
+
+      Per-batch values are injected from the query string so one template
+      renders every version:
+
+        dl-flyer.html?code=PW1&suburb=Pelican%20Waters&qr=../qr/PW1.svg
+
+      Supported params:
+        code    flyer batch code printed small for tracking, e.g. PW1
+        suburb  suburb name for the "now cleaning in" line
+        qr      path or data: URI for the QR image (28mm min, EC level H)
+        seasonal  "1" to print the gutter storm-season line (Aug-Oct batches)
+        guides  "1" to draw trim/safe guides on screen for proofing.
+                Never enable for the printer.
+        config  base64 JSON overriding DEFAULTS below - this is how
+                scripts/flyer.ts injects prices straight from
+                src/data/services.ts so the flyer and the site cannot drift.
+
+      Colour: the five brand values are the same as the site (SPEC §2) so the
+      scan feels continuous. For CMYK output let the printer convert, or hand
+      these to them directly:
+        washed concrete #EEF1F1  ~ C3  M1  Y2  K0
+        charcoal       #1B2328  ~ C74 M60 Y52 K68
+        harbour blue   #123C52  ~ C93 M68 Y44 K34
+        hi-vis yellow  #FFC900  ~ C0  M22 Y100 K0
+      Hi-vis yellow is reserved for the CTA and the QR frame. Nothing else.
+    -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Figtree:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --concrete: #eef1f1;
+        --ink: #1b2328;
+        --harbour: #123c52;
+        --harbour-deep: #0d2c3d;
+        --hivis: #ffc900;
+        --white: #ffffff;
+
+        --bleed: 3mm;
+        --board-w: 105mm;
+        --board-h: 216mm;
+        /* 3mm bleed + 5mm safety = keep all content 8mm off the board edge. */
+        --safe: 8mm;
+
+        --display: "Anton", "Arial Narrow", Impact, sans-serif;
+        --body: "Figtree", "Helvetica Neue", Arial, sans-serif;
+      }
+
+      @page {
+        size: 105mm 216mm;
+        margin: 0;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        background: #58646a;
+      }
+
+      body {
+        font-family: var(--body);
+        color: var(--ink);
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .page {
+        position: relative;
+        width: var(--board-w);
+        height: var(--board-h);
+        overflow: hidden;
+        background: var(--concrete);
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* On screen only: stack the boards with a little breathing room. */
+      @media screen {
+        body {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 24px;
+          padding: 24px 12px;
+        }
+        .page {
+          box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+        }
+      }
+
+      @media print {
+        html {
+          background: none;
+        }
+        .page {
+          box-shadow: none;
+          break-after: page;
+        }
+        .page:last-child {
+          break-after: auto;
+        }
+      }
+
+      /* Proofing guides - screen only, and only with ?guides=1 */
+      .guides {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        display: none;
+      }
+      body.show-guides .guides {
+        display: block;
+      }
+      .guide-trim,
+      .guide-safe {
+        position: absolute;
+      }
+      .guide-trim {
+        inset: var(--bleed);
+        outline: 0.3mm dashed rgba(255, 0, 0, 0.6);
+      }
+      .guide-safe {
+        inset: var(--safe);
+        outline: 0.3mm dashed rgba(0, 128, 255, 0.6);
+      }
+
+      /* ---------- shared bits ---------- */
+
+      .band {
+        padding: 0 var(--safe);
+      }
+
+      .brand {
+        font-family: var(--display);
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        line-height: 1;
+      }
+
+      .kicker {
+        font-size: 7.5pt;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      /* ---------- FRONT ---------- */
+
+      .front-hero {
+        background: var(--harbour);
+        color: var(--white);
+        padding: var(--safe) var(--safe) 7mm;
+      }
+
+      .front-hero .brand {
+        font-size: 15pt;
+      }
+
+      .headline {
+        font-family: var(--display);
+        text-transform: uppercase;
+        line-height: 0.9;
+        letter-spacing: 0.005em;
+        font-size: 40pt;
+        margin-top: 5mm;
+      }
+
+      /*
+        Batch-1 fallback for the before/after photo panel. FLYER_BRIEF is
+        explicit: a bold type block, never a stock before/after. A hard diagonal
+        split - grimy concrete on one side, clean on the other - so the panel
+        carries the transformation itself instead of framing empty space.
+        Replaced wholesale by ?photo= once we have a real before/after.
+      */
+      .hero-panel {
+        position: relative;
+        flex: 1 1 auto;
+        min-height: 56mm;
+        overflow: hidden;
+        background: #3b4348;
+      }
+
+      .hero-panel img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .hero-panel .half {
+        position: absolute;
+        inset: 0;
+      }
+
+      .hero-panel .clean {
+        background: var(--concrete);
+        clip-path: polygon(115% -10%, 115% 110%, -15% 110%);
+      }
+
+      .hero-panel .word {
+        position: absolute;
+        font-family: var(--display);
+        text-transform: uppercase;
+        line-height: 0.85;
+        font-size: 30pt;
+      }
+
+      .hero-panel .word small {
+        display: block;
+        font-family: var(--body);
+        font-size: 7pt;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        margin-bottom: 1mm;
+      }
+
+      .hero-panel .word-dirty {
+        top: 7mm;
+        left: var(--safe);
+        color: rgba(255, 255, 255, 0.62);
+      }
+
+      .hero-panel .word-clean {
+        bottom: 7mm;
+        right: var(--safe);
+        text-align: right;
+        color: var(--harbour);
+      }
+
+      .services-line {
+        background: var(--concrete);
+        padding: 5mm var(--safe);
+        font-size: 10pt;
+        font-weight: 600;
+        text-align: center;
+        line-height: 1.35;
+      }
+
+      .cta-block {
+        background: var(--concrete);
+        padding: 0 var(--safe) var(--safe);
+        display: flex;
+        gap: 4mm;
+        align-items: center;
+      }
+
+      .qr-frame {
+        flex: 0 0 auto;
+        width: 32mm;
+        padding: 2mm;
+        background: var(--hivis);
+        border-radius: 1.5mm;
+      }
+
+      .qr-frame img,
+      .qr-frame .qr-missing {
+        display: block;
+        width: 28mm;
+        height: 28mm;
+        background: var(--white);
+      }
+
+      .qr-missing {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: 6.5pt;
+        font-weight: 600;
+        color: var(--ink);
+        border: 0.4mm dashed var(--ink);
+      }
+
+      .cta-copy {
+        flex: 1 1 auto;
+      }
+
+      .cta-copy .scan {
+        font-family: var(--display);
+        text-transform: uppercase;
+        font-size: 13pt;
+        line-height: 0.95;
+        color: var(--harbour);
+      }
+
+      .cta-copy .sub {
+        font-size: 8pt;
+        margin-top: 1.5mm;
+        line-height: 1.3;
+      }
+
+      .domain {
+        font-weight: 800;
+        font-size: 10pt;
+        margin-top: 2mm;
+        letter-spacing: 0.01em;
+      }
+
+      .phone {
+        font-family: var(--display);
+        font-size: 21pt;
+        line-height: 1;
+        color: var(--harbour);
+        margin-top: 1.5mm;
+      }
+
+      /* ---------- BACK ---------- */
+
+      .back-head {
+        background: var(--harbour);
+        color: var(--white);
+        padding: var(--safe) var(--safe) 6mm;
+      }
+
+      .back-head .brand {
+        font-size: 20pt;
+      }
+
+      .back-head p {
+        font-size: 9pt;
+        margin-top: 1.5mm;
+        opacity: 0.9;
+      }
+
+      .price-list {
+        list-style: none;
+        padding: 7mm var(--safe) 0;
+      }
+
+      .price-list li {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 3mm;
+        padding: 3.4mm 0;
+        border-bottom: 0.25mm solid #d7dddd;
+      }
+
+      .price-list .name {
+        font-size: 10pt;
+        font-weight: 600;
+      }
+
+      .price-list .note {
+        display: block;
+        font-size: 7pt;
+        font-weight: 400;
+        color: #55606a;
+      }
+
+      .price-list .amount {
+        font-family: var(--display);
+        font-size: 15pt;
+        color: var(--harbour);
+        white-space: nowrap;
+      }
+
+      .price-list .amount small {
+        font-family: var(--body);
+        font-size: 7pt;
+        font-weight: 600;
+        color: #55606a;
+        display: block;
+        text-align: right;
+        line-height: 1;
+      }
+
+      .bundle {
+        margin: 5mm var(--safe) 0;
+        background: var(--hivis);
+        color: var(--ink);
+        padding: 3.5mm 4mm;
+        border-radius: 1.5mm;
+        text-align: center;
+      }
+
+      .bundle strong {
+        font-family: var(--display);
+        text-transform: uppercase;
+        font-size: 15pt;
+        display: block;
+        line-height: 1;
+      }
+
+      .bundle span {
+        font-size: 7.5pt;
+        display: block;
+        margin-top: 1mm;
+      }
+
+      .trust {
+        margin: 6mm var(--safe) 0;
+        font-size: 8pt;
+        line-height: 1.5;
+        color: var(--ink);
+      }
+
+      .trust b {
+        font-weight: 800;
+      }
+
+      .seasonal {
+        margin: 5mm var(--safe) 0;
+        border: 0.4mm solid var(--harbour);
+        border-radius: 1.5mm;
+        padding: 3mm;
+        font-size: 8pt;
+        line-height: 1.4;
+        color: var(--harbour);
+      }
+
+      .seasonal b {
+        font-weight: 800;
+      }
+
+      /* Sits between the seasonal note and the footer, and carries the page
+         when the seasonal line is switched off for non-spring batches. */
+      .steps {
+        list-style: none;
+        margin: 5mm var(--safe) 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2mm;
+        font-size: 8.5pt;
+      }
+
+      .steps li {
+        display: flex;
+        align-items: center;
+        gap: 2.5mm;
+      }
+
+      .steps b {
+        flex: 0 0 auto;
+        width: 5.5mm;
+        height: 5.5mm;
+        border-radius: 50%;
+        background: var(--harbour);
+        color: var(--white);
+        font-family: var(--display);
+        font-size: 9pt;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .back-foot {
+        margin-top: auto;
+        background: var(--harbour-deep);
+        color: var(--white);
+        padding: 4mm var(--safe);
+        display: flex;
+        align-items: center;
+        gap: 3.5mm;
+      }
+
+      .back-foot .qr-small {
+        flex: 0 0 auto;
+        width: 22mm;
+        padding: 1.5mm;
+        background: var(--hivis);
+        border-radius: 1mm;
+      }
+
+      .back-foot .qr-small img,
+      .back-foot .qr-small .qr-missing {
+        width: 19mm;
+        height: 19mm;
+      }
+
+      .back-foot .lines {
+        font-size: 8pt;
+        line-height: 1.4;
+      }
+
+      .back-foot .lines .big {
+        font-family: var(--display);
+        font-size: 16pt;
+        line-height: 1;
+      }
+
+      /* Batch code, printed small for tracking. */
+      .batch-code {
+        position: absolute;
+        right: var(--safe);
+        bottom: 2.5mm;
+        font-size: 5.5pt;
+        letter-spacing: 0.08em;
+        color: rgba(255, 255, 255, 0.55);
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ============================ FRONT ============================ -->
+    <section class="page" id="front">
+      <div class="guides">
+        <div class="guide-trim"></div>
+        <div class="guide-safe"></div>
+      </div>
+
+      <header class="front-hero">
+        <div class="brand">Wash Boys</div>
+        <h1 class="headline">Your driveway.<br />Like new.</h1>
+      </header>
+
+      <div class="hero-panel" id="heroPanel">
+        <div class="half dirty"></div>
+        <div class="half clean"></div>
+        <div class="word word-dirty"><small>Before</small>Green<br />and grimy</div>
+        <div class="word word-clean"><small>After</small>Gone.</div>
+      </div>
+
+      <p class="services-line">
+        Driveways · House washes · Patios<br />
+        <span data-slot="areaLine">Local crew, Caloundra to Buderim</span>
+      </p>
+
+      <div class="cta-block">
+        <div class="qr-frame">
+          <div class="qr-missing" data-qr>QR<br />28 mm</div>
+        </div>
+        <div class="cta-copy">
+          <div class="scan">Book online in 60 seconds</div>
+          <div class="sub">See prices instantly. No account, no deposit.</div>
+          <div class="domain" data-slot="domain">[DOMAIN]</div>
+          <div class="phone" data-slot="phone">[PHONE]</div>
+        </div>
+      </div>
+
+      <div class="batch-code" data-slot="code" style="color: rgba(27, 35, 40, 0.45)"></div>
+    </section>
+
+    <!-- ============================= BACK ============================= -->
+    <section class="page" id="back">
+      <div class="guides">
+        <div class="guide-trim"></div>
+        <div class="guide-safe"></div>
+      </div>
+
+      <header class="back-head">
+        <div class="brand">Wash Boys</div>
+        <p data-slot="suburbLine">Local, owner-operated. Caloundra to Buderim.</p>
+      </header>
+
+      <ul class="price-list" id="priceList"></ul>
+
+      <div class="bundle">
+        <strong>Book 2+ services, save 15%</strong>
+        <span>Most places do the driveway and the house together.</span>
+      </div>
+
+      <p class="trust">
+        <b>Fully insured</b> (public liability) · <b>Local, owner-operated</b> ·
+        ABN <span data-slot="abn">[ABN]</span><br />
+        <b>Not happy? We come back and re-wash it free.</b><br />
+        Prices are ranges. We confirm the final price on site before we start.
+        Pay on the day.
+      </p>
+
+      <p class="seasonal" id="seasonal" hidden>
+        <b>Gutter cleaning is coming this storm season.</b> Join the waitlist at
+        <span data-slot="domain">[DOMAIN]</span> and we will call you first. No
+        price until the service is live.
+      </p>
+
+      <ol class="steps">
+        <li><b>1</b> Pick your services</li>
+        <li><b>2</b> Pick a half-day that suits</li>
+        <li><b>3</b> We text you to confirm the window</li>
+      </ol>
+
+      <footer class="back-foot">
+        <div class="qr-small">
+          <div class="qr-missing" data-qr>QR</div>
+        </div>
+        <div class="lines">
+          <div class="big" data-slot="phone">[PHONE]</div>
+          <div data-slot="domain">[DOMAIN]</div>
+        </div>
+        <div class="batch-code" data-slot="code"></div>
+      </footer>
+    </section>
+
+    <script>
+      /*
+        Defaults are the readable fallback when this file is opened directly.
+        scripts/flyer.ts overrides them with ?config= built from
+        src/data/services.ts and src/data/business.ts, so the printed prices
+        can never drift from the site.
+      */
+      const DEFAULTS = {
+        domain: "[DOMAIN]",
+        phone: "[PHONE]",
+        abn: "[ABN]",
+        areaLine: "Local crew, Caloundra to Buderim",
+        prices: [
+          { name: "Driveway & concrete", note: "", amount: "from $150" },
+          { name: "House soft wash", note: "single storey", amount: "from $250" },
+          { name: "Patios, paths & pool surrounds", note: "priced on the area", amount: "from $99" },
+          { name: "Fences & retaining walls", note: "by the metre, per side", amount: "from $120" },
+        ],
+      };
+
+      const params = new URLSearchParams(location.search);
+
+      let config = DEFAULTS;
+      const encoded = params.get("config");
+      if (encoded) {
+        try {
+          config = { ...DEFAULTS, ...JSON.parse(atob(encoded)) };
+        } catch {
+          /* keep defaults if the config is malformed */
+        }
+      }
+
+      const code = (params.get("code") || "").toUpperCase();
+      const suburb = params.get("suburb") || "";
+      const qr = params.get("qr") || "";
+      const photo = params.get("photo") || "";
+
+      const values = {
+        domain: config.domain,
+        phone: config.phone,
+        abn: config.abn,
+        areaLine: config.areaLine,
+        code: code,
+        suburbLine: suburb
+          ? "Now cleaning in " + suburb + ". Local, owner-operated."
+          : "Local, owner-operated. Caloundra to Buderim.",
+      };
+
+      for (const el of document.querySelectorAll("[data-slot]")) {
+        const key = el.getAttribute("data-slot");
+        if (values[key] !== undefined && values[key] !== "") {
+          el.textContent = values[key];
+        }
+      }
+
+      // QR: swap the placeholder for the real image when one is supplied.
+      if (qr) {
+        for (const slot of document.querySelectorAll("[data-qr]")) {
+          const img = document.createElement("img");
+          img.src = qr;
+          img.alt = "Scan to book";
+          slot.replaceWith(img);
+        }
+      }
+
+      if (photo) {
+        const panel = document.getElementById("heroPanel");
+        panel.innerHTML = "";
+        const img = document.createElement("img");
+        img.src = photo;
+        img.alt = "";
+        panel.appendChild(img);
+      }
+
+      const list = document.getElementById("priceList");
+      for (const row of config.prices) {
+        const li = document.createElement("li");
+        const name = document.createElement("span");
+        name.className = "name";
+        name.textContent = row.name;
+        if (row.note) {
+          const note = document.createElement("small");
+          note.className = "note";
+          note.textContent = row.note;
+          name.appendChild(note);
+        }
+        const amount = document.createElement("span");
+        amount.className = "amount";
+        amount.textContent = row.amount;
+        li.append(name, amount);
+        list.appendChild(li);
+      }
+
+      if (params.get("seasonal") === "1") {
+        document.getElementById("seasonal").hidden = false;
+      }
+
+      if (params.get("guides") === "1") {
+        document.body.classList.add("show-guides");
+      }
+    </script>
+  </body>
+</html>

@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const nextConfig: NextConfig = {
   // Pin the workspace root. Without this, Turbopack walks up and finds an
@@ -11,3 +12,8 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+// Gives `next dev` the same Cloudflare bindings the deployed Worker gets
+// (IMAGES today, KV/R2 if we add them), so local dev matches production.
+// No-op outside dev.
+initOpenNextCloudflareForDev();

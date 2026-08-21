@@ -106,15 +106,13 @@ export function siteUrl(): string {
   return publicEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
 }
 
+/**
+ * Cloudflare Workers has no equivalent of Vercel's automatic deployment URL,
+ * so NEXT_PUBLIC_SITE_URL must be set explicitly for any deployed build - as
+ * a *build* variable, since NEXT_PUBLIC_* values are inlined at build time.
+ * Until the real domain exists, point it at the workers.dev URL.
+ */
 function defaultSiteUrl(): string | undefined {
-  // The stable production domain, which follows the custom domain once one is
-  // attached. This is the one that belongs in a confirmation email.
-  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
-  }
-  // Per-deployment URL: correct for previews, wrong for anything a customer
-  // sees, so it only applies when the production URL is unavailable.
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   if (process.env.NODE_ENV === "development") return "http://localhost:3000";
   return undefined;
 }

@@ -1,6 +1,7 @@
 # DEPLOY.md — pipeline and launch setup
 
-Hosting is **Vercel**, DNS will be **Cloudflare** once the domain is bought.
+Hosting is **Cloudflare Workers** via the OpenNext adapter
+(`@opennextjs/cloudflare`), with **Cloudflare DNS** once the domain is bought.
 Repo: <https://github.com/RJmay/wash-boys> (private).
 
 ## What is deployable today
@@ -13,40 +14,64 @@ session 8.
 
 The build succeeds with **no environment variables set**, by design: env
 validation is lazy, so a missing key fails the one server action that needs it
-with a readable message instead of breaking the build. You can import the repo
-before Supabase exists.
+with a readable message instead of breaking the build. You can deploy before
+Supabase exists.
+
+Verified locally: `npm run cf:build` produces a Worker, and the app boots and
+serves in the real Workers runtime (`wrangler dev`) — HTTP 200 on `/`, correct
+404 handling. Bundle is ~951 KB gzipped, well inside the 3 MB Worker limit.
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Next dev server, with Cloudflare bindings attached |
+| `npm run cf:build` | Build + adapt for Cloudflare (`.open-next/worker.js`) |
+| `npm run cf:preview` | Build, then serve the real Worker locally on 8787 |
+| `npm run cf:deploy` | Build and deploy to Cloudflare |
+| `npm run cf:typegen` | Regenerate binding types after editing `wrangler.jsonc` |
 
 ---
 
-## 1. Vercel — import the repo (5 minutes, browser)
+## 1. Cloudflare — get it deploying
 
-1. <https://vercel.com/new> → **Import Git Repository** → `RJmay/wash-boys`.
-   First time only, this installs the Vercel GitHub app; grant it access to
-   that one repo.
-2. Framework preset: **Next.js** (auto-detected). Leave root directory, build
-   command and output directory at their defaults.
-3. Do **not** add environment variables yet — click **Deploy**.
-4. You get a URL like `wash-boys.vercel.app`. That is the pipeline working.
+Two ways in. **Git integration is the one you want** — it matches the
+push-to-deploy loop and needs no local auth.
 
-From then on: push to `main` → production deploy; any other branch or PR →
-its own preview URL.
+### Option A — Workers Builds (recommended)
 
-### Region
+1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Import a
+   repository** → connect GitHub, authorise the `wash-boys` repo.
+2. Build command: `npm run cf:build`
+   Deploy command: `npx wrangler deploy`
+3. Add the build variables from section 3 **before** the first build (the
+   `NEXT_PUBLIC_*` ones are baked in at build time).
+4. Deploy. You get `wash-boys.<your-subdomain>.workers.dev`.
 
-[vercel.json](vercel.json) pins serverless functions to **`syd1` (Sydney)**.
-Default is US East, which would add a Pacific round trip to every booking
-write for a business whose customers are all within an hour of Caloundra.
+Every push to `main` then builds and deploys automatically.
 
-If the deploy rejects `regions` on your plan, delete that key and set it in
-**Project Settings → Functions → Function Region → Sydney** instead.
+### Option B — from this machine
+
+```bash
+npx wrangler login     # opens a browser
+npm run cf:deploy
+```
+
+### Plan note
+
+Worker CPU time per request is capped on the free plan, and server-rendering
+React can push against that once the booking flow is real. Static pages are
+served straight from the assets binding and barely touch it, so this may never
+bite — but if you start seeing CPU-limit errors under load, Workers Paid is
+$5/month and raises the ceiling substantially. Not something to pre-buy.
 
 ---
 
 ## 2. Supabase — create the project
 
-**Region: `ap-southeast-2` (Sydney).** This one is easy to get wrong and
-painful to change — the default is US East, which would put the Pacific
-between your Sydney functions and your database on every query.
+**Region: `ap-southeast-2` (Sydney).** Easy to get wrong, painful to change —
+the default is US East, which would put the Pacific between your database and
+every booking write.
 
 Then apply the schema:
 
@@ -65,57 +90,77 @@ there is meant to be exactly one.
 
 ## 3. Environment variables
 
-Add these in **Vercel → Project → Settings → Environment Variables**, for
-Production, Preview and Development. Mirror them into `.env.local` for local
-work (`cp .env.example .env.local`).
+Cloudflare splits these in a way Vercel does not, and getting it wrong is the
+most likely reason a deploy misbehaves:
 
-| Variable | Where it comes from | Notes |
+**Build variables** — `NEXT_PUBLIC_*` values are inlined into the JavaScript
+at build time. They must exist when the build runs (Workers Builds → Settings
+→ Variables → *Build* variables). Changing one requires a rebuild, not just a
+restart.
+
+**Runtime secrets** — everything else is read by the Worker at request time.
+Add via dashboard (Settings → Variables and Secrets → *Secret*) or
+`npx wrangler secret put NAME`. Never commit them.
+
+| Variable | Kind | Where it comes from |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Settings → API | |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API | Safe to expose; RLS denies it everything |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API | **Secret.** Bypasses RLS. Never prefix with `NEXT_PUBLIC_` |
-| `RESEND_API_KEY` | Resend → API Keys | Session 3 onward |
-| `ADMIN_EMAIL` | Your inbox | Where new-booking alerts land |
-| `NEXT_PUBLIC_SITE_URL` | Your domain | Optional — falls back to the Vercel production URL |
-| `QUOTE_ENGINE_URL` | — | Leave empty. Phase 2 (SPEC §10) |
+| `NEXT_PUBLIC_SUPABASE_URL` | build | Supabase → Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | build | Supabase → Settings → API. Safe to expose; RLS denies it everything |
+| `NEXT_PUBLIC_SITE_URL` | build | The workers.dev URL for now, the real domain later. No trailing slash |
+| `SUPABASE_SERVICE_ROLE_KEY` | secret | Supabase → Settings → API. **Bypasses RLS.** Never prefix with `NEXT_PUBLIC_` |
+| `RESEND_API_KEY` | secret | Resend → API Keys. Session 3 onward |
+| `ADMIN_EMAIL` | secret | Your inbox — where new-booking alerts land |
+| `QUOTE_ENGINE_URL` | secret | Leave empty. Phase 2 (SPEC §10) |
 
-> **`NEXT_PUBLIC_*` values are baked into the build.** After adding or changing
-> one, redeploy — an existing deployment will not pick it up.
+Locally, all of them go in `.env.local` (`cp .env.example .env.local`).
+
+Unlike Vercel, Workers has no automatic deployment URL, so `NEXT_PUBLIC_SITE_URL`
+has to be set explicitly or emails and sitemap links have nothing to point at.
 
 ---
 
 ## 4. Resend
 
-Create the account, add the domain, verify the DNS records it gives you (these
-go in Cloudflare, see below). Send from `bookings@[DOMAIN]`.
+Create the account, add the domain, verify the DNS records it gives you — they
+go in Cloudflare DNS alongside everything else. Send from `bookings@[DOMAIN]`.
 
 ---
 
-## 5. Domain + Cloudflare DNS — when the domain is bought
+## 5. Domain — when it is bought
 
 Not done yet. Registration needs the ABN. Candidates: `washboys.com.au`,
 `thewashboys.com.au`, `washboys.au`.
 
-Once bought:
+Because DNS is already Cloudflare, attaching it is short:
 
 1. Add the domain to Cloudflare, point the registrar at Cloudflare's
    nameservers.
-2. Vercel → Project → Settings → Domains → add the domain. Vercel gives you a
-   CNAME (or A record for the apex).
-3. Add those in Cloudflare DNS. Set the record to **DNS only (grey cloud)**,
-   not proxied — Vercel terminates TLS and handles its own edge, and double
-   proxying causes redirect loops and breaks certificate issuance.
-4. Add Resend's verification records (SPF/DKIM/DMARC) in the same place.
-5. Set `NEXT_PUBLIC_SITE_URL` to the real origin and redeploy.
-6. Fill `[PHONE]`, `[ABN]` and `[DOMAIN]` in
-   [src/data/business.ts](src/data/business.ts) — that is the only file they
-   appear in.
+2. Worker → **Settings → Domains & Routes → Add → Custom Domain**. Cloudflare
+   creates the DNS record and issues the certificate itself — no manual CNAME.
+3. Add Resend's SPF/DKIM/DMARC records in the same DNS zone.
+4. Update `NEXT_PUBLIC_SITE_URL` to the real origin and **rebuild** (build
+   variable, so a redeploy alone will not pick it up).
+5. Fill `[PHONE]`, `[ABN]` and `[DOMAIN]` in
+   [src/data/business.ts](src/data/business.ts) — the only file they appear in.
+
+---
+
+## Configuration reference
+
+- [wrangler.jsonc](wrangler.jsonc) — Worker name, `nodejs_compat`, the assets
+  binding, the native `IMAGES` binding (this is what keeps `next/image`
+  working, so the before/after photos stay optimised), and observability logs.
+- [open-next.config.ts](open-next.config.ts) — no incremental cache, because
+  nothing in the site uses ISR. Instructions for adding the R2 cache are in
+  the file for when that changes.
+- `compatibility_date` is pinned to `2026-08-20` to match the bundled workerd.
+  Do not set it ahead of the runtime or the deploy is rejected.
 
 ---
 
 ## Still open before anything is printed or launched
 
-These are the session-0 and SPEC §9 items, none of which are code:
+Session-0 and SPEC §9 items, none of which are code:
 
 - [ ] Domain bought, email on the domain (`bookings@`)
 - [ ] Supabase project created in `ap-southeast-2`, schema pushed, signups off

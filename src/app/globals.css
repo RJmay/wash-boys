@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/*
+ * Placeholder only. The token system — washed-concrete #EEF1F1, charcoal
+ * #1B2328, harbour blue #123C52, hi-vis yellow #FFC900 reserved for the
+ * single CTA — is designed in session 2 (SPEC §2) along with the type scale
+ * and spacing. No prefers-color-scheme switching: the brand is one fixed
+ * light palette, shared with the flyer so the scan feels continuous.
+ */
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+}
+
+body {
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}

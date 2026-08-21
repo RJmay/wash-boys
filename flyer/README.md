@@ -28,7 +28,27 @@ takes a config rather than hardcoding numbers.
 | `npm run flyer -- --crop-marks` | 117×228mm with trim marks, for a trade printer |
 | `npm run flyer -- --png` | PNG previews alongside the PDFs |
 | `npm run flyer -- --proof --guides` | Draw trim and safe-area guides |
+| `npm run flyer -- --standalone` | Self-contained editable HTML, one file per batch |
 | `npm run flyer:fonts` | Re-mirror the webfonts |
+
+## The editable copy
+
+```bash
+npm run flyer -- --standalone
+```
+
+Writes `flyer/out/wash-boys-DL-<CODE>-editable.html` — around 220 KB, with
+the fonts, the QR and every value baked in. No server, no build, no query
+string: double-click it, edit it in any text editor, Ctrl+P to print.
+
+It carries its own instructions in a comment at the top of the file: where the
+copy and prices live (`__FLYER__`), where the colours are, what the QR
+actually encodes, and the print dialog settings (105 × 216mm, margins none,
+background graphics on).
+
+**It is a snapshot, not the source.** `npm run flyer` regenerates from
+`dl-flyer.html` plus `src/data` and will not see your hand edits, so fold
+anything worth keeping back into the template.
 
 `flyer/out/` and `flyer/qr/` are both gitignored — they are generated, and QR
 images are domain-specific.

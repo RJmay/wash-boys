@@ -658,9 +658,17 @@
         ],
       };
 
+      /*
+        A standalone copy of this file (npm run flyer -- --standalone) bakes
+        its values into window.__FLYER__ instead of the query string, so it
+        works by double-clicking with no server and no parameters. A query
+        param still wins if one is supplied.
+      */
+      const PRESET = globalThis.__FLYER__ || {};
       const params = new URLSearchParams(location.search);
+      const param = (name) => params.get(name) ?? PRESET[name] ?? "";
 
-      let config = DEFAULTS;
+      let config = PRESET.config ? { ...DEFAULTS, ...PRESET.config } : DEFAULTS;
       const encoded = params.get("config");
       if (encoded) {
         try {
@@ -670,10 +678,10 @@
         }
       }
 
-      const code = (params.get("code") || "").toUpperCase();
-      const suburb = params.get("suburb") || "";
-      const qr = params.get("qr") || "";
-      const photo = params.get("photo") || "";
+      const code = param("code").toUpperCase();
+      const suburb = param("suburb");
+      const qr = param("qr");
+      const photo = param("photo");
 
       const values = {
         domain: config.domain,
@@ -731,11 +739,11 @@
         list.appendChild(li);
       }
 
-      if (params.get("seasonal") === "1") {
+      if (param("seasonal") === "1") {
         document.getElementById("seasonal").hidden = false;
       }
 
-      if (params.get("guides") === "1") {
+      if (param("guides") === "1") {
         document.body.classList.add("show-guides");
       }
 
@@ -745,7 +753,7 @@
         never cut through. Most online digital printers want bleed only and no
         marks at all - that is why this is off by default.
       */
-      if (params.get("cropmarks") === "1") {
+      if (param("cropmarks") === "1") {
         document.body.classList.add("crop-marks");
         const MARGIN = 6; // mm of space outside the artwork board
         const BLEED = 3; // mm

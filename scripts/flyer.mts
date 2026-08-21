@@ -16,7 +16,7 @@
  * the faults that are invisible on screen and fatal on 6,000 pieces of card.
  * Use --proof to look at the design before those exist.
  */
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -145,6 +145,119 @@ function templateUrl(
   return url.href;
 }
 
+/**
+ * Emits a single self-contained HTML file: fonts and QR inlined, values baked
+ * in, no server, no build, no query string. Double-click to open, edit in any
+ * text editor, Ctrl+P to print.
+ *
+ * This is the hand-editable copy. It is a snapshot, not the source - the
+ * template in flyer/ stays canonical, so anything you want to keep should end
+ * up back there.
+ */
+function buildStandalone(
+  code: string,
+  suburb: string,
+  opts: { seasonal: boolean },
+): string {
+  let html = readFileSync(TEMPLATE, "utf8");
+
+  // Inline the webfonts so the file works offline, anywhere.
+  const fontsDir = path.join(ROOT, "flyer", "fonts");
+  let css = readFileSync(path.join(fontsDir, "fonts.css"), "utf8");
+  css = css.replace(/url\(\.\/([^)]+\.woff2)\)/g, (_match, file: string) => {
+    const data = readFileSync(path.join(fontsDir, file)).toString("base64");
+    return `url(data:font/woff2;base64,${data})`;
+  });
+  html = html.replace(
+    /<link rel="stylesheet" href="\.\/fonts\/fonts\.css" \/>/,
+    `<style>\n${css}\n    </style>`,
+  );
+
+  // Inline the QR as a data URI, if one has been generated.
+  let qrDataUri = "";
+  let qrNote =
+    `No QR is embedded yet - the yellow frame shows a placeholder box.\n` +
+    `        Generate one with \`npm run qr\` once the domain is live, then\n` +
+    `        re-run this command. A QR cannot exist before the domain does.`;
+
+  if (existsSync(qrPath(code))) {
+    const svg = readFileSync(qrPath(code)).toString("base64");
+    qrDataUri = `data:image/svg+xml;base64,${svg}`;
+
+    let encodes = `/go/${code}`;
+    const manifestPath = path.join(QR_DIR, "manifest.json");
+    if (existsSync(manifestPath)) {
+      try {
+        const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
+          codes?: Record<string, string>;
+        };
+        encodes = manifest.codes?.[code] ?? encodes;
+      } catch {
+        /* fall back to the path form */
+      }
+    }
+    qrNote =
+      `The embedded QR encodes:\n          ${encodes}\n` +
+      `        CHECK THAT IS THE RIGHT DOMAIN before printing. Editing the\n` +
+      `        text under the QR does not change where the QR points.`;
+  }
+
+  const preset = {
+    code,
+    suburb,
+    qr: qrDataUri,
+    seasonal: opts.seasonal ? "1" : "",
+    config: buildConfig(),
+  };
+
+  const banner = `
+    <!--
+      ============================================================
+      EDITABLE FLYER — Wash Boys DL, ${code}${suburb ? ` (${suburb})` : ""}
+      ============================================================
+
+      Self-contained. No internet, no build step. Double-click to open it in
+      a browser; edit it in any text editor.
+
+      TO PRINT
+        Ctrl+P -> Destination "Save as PDF"
+        Paper size: 105 x 216mm    Margins: None
+        Tick "Background graphics" or the colour will not print.
+        That gives the 99 x 210mm DL trim plus 3mm bleed all round.
+
+      TO CHANGE THE WORDS AND PRICES
+        Search this file for  __FLYER__  (near the bottom). Phone,
+        domain, ABN and every price live there in plain text.
+        Headlines are in the markup below it - search for "Your driveway".
+
+      TO CHANGE THE COLOURS
+        The five brand values are at the top of the <style> block: concrete,
+        ink, harbour, harbour-deep, hivis. Keep hi-vis yellow on the CTA and
+        the QR frame only - it stops reading as "press this" if it is
+        everywhere.
+
+      ABOUT THE QR
+        ${qrNote}
+
+      KEEP IN MIND
+        - Anything important must stay 8mm from the edge of the board, or the
+          guillotine can take it. Add ?guides=1 to the URL to see the lines.
+        - This file is a SNAPSHOT. The source of truth is
+          flyer/dl-flyer.html plus src/data - changes made here are not
+          picked up by \`npm run flyer\`, so fold anything you want to keep
+          back into those.
+      ============================================================
+    -->
+`;
+
+  html = html.replace(
+    /<script>/,
+    `<script>\n      globalThis.__FLYER__ = ${JSON.stringify(preset, null, 2).replace(/\n/g, "\n      ")};\n`,
+  );
+
+  return html.replace(/<head>/, `<head>${banner}`);
+}
+
 async function render(
   browser: Browser,
   code: string,
@@ -245,6 +358,25 @@ async function main() {
     console.log("PROOF ONLY — not print ready:");
     for (const p of problems) console.log(`  - ${p}`);
     console.log("");
+  }
+
+  // Hand-editable copies need no browser at all.
+  if (flag("standalone")) {
+    for (const batch of batches) {
+      const html = buildStandalone(batch.code, batch.suburb, opts);
+      const out = path.join(
+        OUT_DIR,
+        `wash-boys-DL-${batch.code}-editable.html`,
+      );
+      writeFileSync(out, html, "utf8");
+      console.log(
+        `  ${batch.code.padEnd(6)} ${batch.suburb.padEnd(16)} ${path.basename(out)}  ${(html.length / 1024).toFixed(0)} KB`,
+      );
+    }
+    console.log(
+      `\n${batches.length} editable file(s) in flyer/out/ — self-contained, open in a browser and Ctrl+P to print.`,
+    );
+    return;
   }
 
   const browser = await chromium.launch({ channel: value("channel") ?? "chrome" });

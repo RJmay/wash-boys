@@ -42,13 +42,22 @@ push-to-deploy loop and needs no local auth.
 
 1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Import a
    repository** → connect GitHub, authorise the `wash-boys` repo.
-2. Build command: `npm run cf:build`
-   Deploy command: `npx wrangler deploy`
+2. **Deploy command: `npm run cf:deploy`**
+   **Build command: leave empty.**
 3. Add the build variables from section 3 **before** the first build (the
    `NEXT_PUBLIC_*` ones are baked in at build time).
 4. Deploy. You get `wash-boys.<your-subdomain>.workers.dev`.
 
 Every push to `main` then builds and deploys automatically.
+
+> **Why one command, not two.** Workers Builds will happily run a deploy
+> command with an empty build command, and `npx wrangler deploy` on its own
+> fails with *"Could not find compiled Open Next config, did you run the build
+> command?"* — there is no Worker to ship yet. `npm run cf:deploy` builds and
+> deploys in the one step, so there is no second field to forget.
+>
+> Two fields also works if you prefer it: build `npm run cf:build`, deploy
+> `npx wrangler deploy`. Just do not set one without the other.
 
 ### Option B — from this machine
 

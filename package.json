@@ -13,7 +13,9 @@
     "cf:preview": "opennextjs-cloudflare build && wrangler dev",
     "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "cf:typegen": "wrangler types --env-interface CloudflareEnv",
-    "flyer": "tsx scripts/flyer.mts"
+    "flyer": "tsx scripts/flyer.mts",
+    "qr": "tsx scripts/qr.mts",
+    "flyer:fonts": "node scripts/fonts.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
@@ -28,11 +30,16 @@
     "@opennextjs/cloudflare": "^1.20.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pngjs": "^6.0.5",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
+    "jsqr": "^1.4.0",
     "playwright-core": "^1.62.1",
+    "pngjs": "^7.0.0",
+    "qrcode": "^1.5.4",
     "tailwindcss": "^4",
     "tsx": "^4.23.12",
     "typescript": "^5",

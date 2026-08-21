@@ -49,3 +49,6 @@ next-env.d.ts
 
 # rendered flyer output
 flyer/out/
+
+# generated QR assets - regenerate with npm run qr (domain-specific)
+flyer/qr/

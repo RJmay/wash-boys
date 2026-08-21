@@ -37,12 +37,14 @@
       Hi-vis yellow is reserved for the CTA and the QR frame. Nothing else.
     -->
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Anton&family=Figtree:wght@400;600;800&display=swap"
-      rel="stylesheet"
-    />
+    <!--
+      Fonts are mirrored into flyer/fonts/ rather than loaded from Google.
+      A print render must be byte-identical whether or not this machine has
+      network at the time, and a silent fallback to Arial on the one render
+      that goes to the printer is not a risk worth carrying.
+      Refresh them with: npm run flyer:fonts
+    -->
+    <link rel="stylesheet" href="./fonts/fonts.css" />
 
     <style>
       :root {
@@ -85,6 +87,29 @@
         print-color-adjust: exact;
       }
 
+      /*
+        The sheet is the PDF page. With crop marks off it is exactly the
+        artwork board (105 x 216mm) — which is what online digital printers
+        want: bleed supplied, no marks. With ?cropmarks=1 it grows by 6mm all
+        round to make room for trim marks, for a trade printer that asks for
+        them. The renderer sets the PDF size to match.
+      */
+      :root {
+        --mark: 0mm;
+      }
+
+      body.crop-marks {
+        --mark: 6mm;
+      }
+
+      .sheet {
+        position: relative;
+        width: calc(var(--board-w) + var(--mark) * 2);
+        height: calc(var(--board-h) + var(--mark) * 2);
+        padding: var(--mark);
+        background: var(--white);
+      }
+
       .page {
         position: relative;
         width: var(--board-w);
@@ -93,6 +118,11 @@
         background: var(--concrete);
         display: flex;
         flex-direction: column;
+      }
+
+      .mark {
+        position: absolute;
+        background: #000;
       }
 
       /* On screen only: stack the boards with a little breathing room. */
@@ -104,7 +134,7 @@
           gap: 24px;
           padding: 24px 12px;
         }
-        .page {
+        .sheet {
           box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
         }
       }
@@ -113,11 +143,11 @@
         html {
           background: none;
         }
-        .page {
+        .sheet {
           box-shadow: none;
           break-after: page;
         }
-        .page:last-child {
+        .sheet:last-child {
           break-after: auto;
         }
       }
@@ -515,6 +545,7 @@
 
   <body>
     <!-- ============================ FRONT ============================ -->
+    <div class="sheet">
     <section class="page" id="front">
       <div class="guides">
         <div class="guide-trim"></div>
@@ -552,8 +583,10 @@
 
       <div class="batch-code" data-slot="code" style="color: rgba(27, 35, 40, 0.45)"></div>
     </section>
+    </div>
 
     <!-- ============================= BACK ============================= -->
+    <div class="sheet">
     <section class="page" id="back">
       <div class="guides">
         <div class="guide-trim"></div>
@@ -603,6 +636,7 @@
         <div class="batch-code" data-slot="code"></div>
       </footer>
     </section>
+    </div>
 
     <script>
       /*
@@ -703,6 +737,42 @@
 
       if (params.get("guides") === "1") {
         document.body.classList.add("show-guides");
+      }
+
+      /*
+        Trim marks, for a printer that asks for them. Drawn in the 6mm margin
+        outside the bleed, stopping 1mm short of the trim line so they are
+        never cut through. Most online digital printers want bleed only and no
+        marks at all - that is why this is off by default.
+      */
+      if (params.get("cropmarks") === "1") {
+        document.body.classList.add("crop-marks");
+        const MARGIN = 6; // mm of space outside the artwork board
+        const BLEED = 3; // mm
+        const TRIM = MARGIN + BLEED; // sheet edge -> trim line
+        const LEN = MARGIN - 1; // stop 1mm short of trim
+        const HAIR = "0.25mm";
+
+        for (const sheet of document.querySelectorAll(".sheet")) {
+          const add = (style) => {
+            const el = document.createElement("div");
+            el.className = "mark";
+            Object.assign(el.style, style);
+            sheet.appendChild(el);
+          };
+          for (const left of [true, false]) {
+            for (const top of [true, false]) {
+              const xEdge = left ? { left: "0" } : { right: "0" };
+              const yEdge = top ? { top: "0" } : { bottom: "0" };
+              const xTrim = left ? { left: TRIM + "mm" } : { right: TRIM + "mm" };
+              const yTrim = top ? { top: TRIM + "mm" } : { bottom: TRIM + "mm" };
+              // horizontal mark sitting on the trim line
+              add({ ...xEdge, ...yTrim, width: LEN + "mm", height: HAIR });
+              // vertical mark sitting on the trim line
+              add({ ...yEdge, ...xTrim, height: LEN + "mm", width: HAIR });
+            }
+          }
+        }
       }
     </script>
   </body>

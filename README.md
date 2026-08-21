@@ -8,6 +8,7 @@ site has one job: turn that scan into a booked job in under two minutes.
 - **What to build:** [SPEC.md](SPEC.md) (canonical)
 - **Build order:** [KICKOFF.md](KICKOFF.md)
 - **Flyer artwork and drop plan:** [FLYER_BRIEF.md](FLYER_BRIEF.md)
+- **Hosting, env vars and launch setup:** [DEPLOY.md](DEPLOY.md)
 
 ## Status
 

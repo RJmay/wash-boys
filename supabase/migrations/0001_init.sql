@@ -61,7 +61,9 @@ create table services (
   -- Additive (see header note 1).
   bookable boolean not null default true,
   coming_soon boolean not null default false,
-  -- 'flat'     one range for the job (driveway, house wash)
+  -- 'flat'     one range for the whole job. Unused at launch: every service
+  --            turned out to need size, because a flat range collapses on a
+  --            big job (a 150m2 driveway at a $350 cap returns $35/hr)
   -- 'banded'   priced on size; the bands live in src/data/services.ts and the
   --            from/low/high here span the whole ladder
   -- 'unpriced' not sellable yet, shows no price anywhere
@@ -447,18 +449,21 @@ insert into services (
   active, sort, bookable, coming_soon, pricing_model
 ) values
   (
+    -- Priced on area: four size bands in src/data/services.ts. A flat range
+    -- put a 150m2 driveway at /hr, which acreage jobs would have exposed.
     'driveway-cleaning',
     'Driveway & concrete cleaning',
-    150, 150, 350,
-    'Concrete, exposed aggregate and pavers surface-cleaned evenly, edges cut in by hand.',
-    true, 1, true, false, 'flat'
+    150, 150, 470,
+    'Concrete, exposed aggregate and pavers surface-cleaned evenly, edges cut in by hand. Priced on area.',
+    true, 1, true, false, 'banded'
   ),
   (
+    -- Priced on wall area, asked in house-size terms. Two storey is quote-only.
     'house-washing',
     'House soft wash',
-    250, 250, 450,
-    'Low-pressure soft wash for render, brick and weatherboard. Single storey at launch.',
-    true, 2, true, false, 'flat'
+    250, 250, 550,
+    'Low-pressure soft wash for render, brick and weatherboard. Single storey at launch, priced on wall area.',
+    true, 2, true, false, 'banded'
   ),
   (
     -- Priced on area: ~$6-8/m2 over a $99 minimum. Bands in src/data/services.ts.

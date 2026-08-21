@@ -30,10 +30,18 @@ training data from day one (jobs table).
   The guardrail: every gutter tap lands on the waitlist — never a booking,
   never a price — and the headline gets no gutter price or "book now"
   affordance next to it.
-- From-pricing anchors: driveway from $150 (typical $150–350), house wash
-  from $250 (typical $250–450 single storey). Bundles target $400–800
-  tickets. Show ranges, never fixed prices. Final price confirmed on site
-  before work starts. No gutter pricing anywhere until that service is live.
+- From-pricing anchors — these are what the flyer prints, do not move them:
+  driveway from $150, house wash from $250, patios from $99, fences from $120.
+  Bundles target $400–800 tickets. Show ranges, never fixed prices. Final
+  price confirmed on site before work starts. No gutter pricing anywhere
+  until that service is live.
+- **Every service is priced on size**, in four plain-language bands. Driveway
+  and house wash were flat ($150–350 / $250–450) until Aug 2026, when a
+  reconciliation against the Phase-2 quote engine showed a flat range
+  collapses on a big job: a 150m² driveway at the $350 cap returns $35/hr,
+  and Buderim's big blocks and Meridan's acreage edges are both on the wave-1
+  drop list. Typical suburban jobs still land inside the old ranges; only
+  large ones changed.
 - Patios/paths are priced **on area**: from $99, roughly $6–8/m² over a $99
   minimum call-out, spanning $99–400 across four size bands (the smallest
   band is minimum-dominated by design — a courtyard still costs a trip).

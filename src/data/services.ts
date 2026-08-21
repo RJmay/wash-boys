@@ -129,7 +129,58 @@ export const SERVICES: readonly Service[] = [
       "Oil and rust spots pre-treated where they will lift",
       "Run-off directed away from garden beds",
     ],
-    pricing: { kind: "flat", low: 150, high: 350 },
+    /*
+      Priced on area. It used to be a flat $150-350, which is right for a
+      typical suburban driveway and ruinous beyond one: a 150m2 drive at the
+      $350 ceiling works out at $35/hr, and 220m2 at $24/hr. Buderim's big
+      blocks and the Meridan Plains acreage edges are on the wave-1 drop list,
+      so those jobs will turn up. The $150 anchor is unchanged.
+    */
+    pricing: {
+      kind: "banded",
+      unit: "m2",
+      unitLabel: "m2",
+      prompt: "How much driveway and concrete?",
+      bands: [
+        {
+          id: "single",
+          label: "Single driveway",
+          hint: "One car wide, up to the street",
+          unitLow: 0,
+          unitHigh: 40,
+          priceLow: 150,
+          priceHigh: 210,
+        },
+        {
+          id: "double",
+          label: "Double driveway",
+          hint: "Two cars wide, or a single drive plus the front path",
+          unitLow: 40,
+          unitHigh: 75,
+          priceLow: 210,
+          priceHigh: 300,
+        },
+        {
+          id: "large",
+          label: "Driveway and paths",
+          hint: "A long drive, or the drive plus paths down the side",
+          unitLow: 75,
+          unitHigh: 130,
+          priceLow: 300,
+          priceHigh: 470,
+        },
+        {
+          id: "xl",
+          label: "Bigger than that",
+          hint: "Acreage or a very long drive. We will confirm on site",
+          unitLow: 130,
+          unitHigh: null,
+          priceLow: 0,
+          priceHigh: 0,
+          quoteOnly: true,
+        },
+      ],
+    },
     bookable: true,
     comingSoon: false,
     active: true,
@@ -149,7 +200,57 @@ export const SERVICES: readonly Service[] = [
       "Windows rinsed down after the walls",
       "Plants wet down before and after",
     ],
-    pricing: { kind: "flat", low: 250, high: 450 },
+    /*
+      Priced on wall area, but asked in the customer's terms - nobody knows
+      their wall area. Same reason as the driveway: a flat $250-450 puts a
+      300m2 wall at $58/hr. Two storey stays quote-only (SPEC §4.9). The $250
+      anchor is unchanged.
+    */
+    pricing: {
+      kind: "banded",
+      unit: "m2",
+      unitLabel: "m2 of wall",
+      prompt: "What sort of house is it?",
+      bands: [
+        {
+          id: "small",
+          label: "Small lowset",
+          hint: "Three bedrooms, single storey",
+          unitLow: 0,
+          unitHigh: 150,
+          priceLow: 250,
+          priceHigh: 330,
+        },
+        {
+          id: "typical",
+          label: "Typical family home",
+          hint: "Four bedrooms, single storey",
+          unitLow: 150,
+          unitHigh: 200,
+          priceLow: 330,
+          priceHigh: 420,
+        },
+        {
+          id: "large",
+          label: "Large or long",
+          hint: "A big single-storey home, or one that runs down the block",
+          unitLow: 200,
+          unitHigh: 260,
+          priceLow: 420,
+          priceHigh: 550,
+        },
+        {
+          id: "two-storey",
+          label: "Two storey",
+          hint: "Quote only for now - we will price it from a couple of photos",
+          unitLow: 260,
+          unitHigh: null,
+          priceLow: 0,
+          priceHigh: 0,
+          quoteOnly: true,
+        },
+      ],
+    },
     bookable: true,
     comingSoon: false,
     active: true,

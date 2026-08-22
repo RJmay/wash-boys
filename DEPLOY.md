@@ -167,16 +167,47 @@ Because DNS is already Cloudflare, attaching it is short:
 
 ---
 
-## Still open before anything is printed or launched
+## Still open — the owner's list
 
-Session-0 and SPEC §9 items, none of which are code:
+None of these are code, and most of the build is blocked behind the first
+three. Ordered by how much each one unblocks.
 
-- [ ] Domain bought, email on the domain (`bookings@`)
-- [ ] Supabase project created in `ap-southeast-2`, schema pushed, signups off
-- [ ] Resend account, domain verified
-- [ ] Phone number live
-- [ ] Public liability insurance active — the site claims it, so it must be true
-- [ ] ABN in the footer
-- [ ] Sessions 2–7 built (landing, booking, QR, admin, SEO, flyer)
-- [ ] Session 8 launch checklist passed end to end, including a real-phone
-      test booking through a printed QR code
+### 1. Unblocks the most
+
+- [ ] **Buy the domain.** Needs the ABN. This is the keystone — QR codes
+      cannot be generated without it (they encode `https://domain/go/CODE`),
+      so no flyer can print, no email can be set up, and `NEXT_PUBLIC_SITE_URL`
+      has nothing to point at.
+- [ ] **Create the Supabase project in `ap-southeast-2`**, push the schema,
+      turn off email signups. Nothing can be booked, logged or measured until
+      this exists.
+- [ ] **Get the phone number live.** It is the fallback CTA on every page and
+      one of the three ways into the flyer.
+
+### 2. Before any flyer prints
+
+- [ ] Public liability insurance active — the site and the flyer both claim
+      "fully insured", so it has to be true first
+- [ ] ABN registered and filled into `src/data/business.ts`
+- [ ] Email on the domain (`bookings@`) and Resend domain verified
+- [ ] Sign off the patio and fence rates — they are trade-standard starting
+      points, not your books (see `RATES` in src/data/services.ts)
+- [ ] `npm run qr` re-run against the real domain, then a home-printed QR
+      scanned at arm's length in bad light
+
+### 3. Before launch
+
+- [ ] Cloudflare build variables and secrets set (section 3 above), deploy green
+- [ ] Google Business Profile — Aroona base, service-area business
+- [ ] Real before/after photos from soft-launch week, to replace the
+      typographic hero and fill the proof strip
+
+### Quote engine (separate track, does not block launch)
+
+- [ ] Anthropic API key, Railway deploy, Postgres attached (not SQLite —
+      it is wiped on every redeploy)
+
+### Still to build (not yours)
+
+Sessions 3–8: booking flow, QR redirect, admin, SEO pages, then the SPEC §9
+launch checklist end to end.

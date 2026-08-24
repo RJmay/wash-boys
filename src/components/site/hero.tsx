@@ -26,7 +26,7 @@ export function Hero() {
 
   return (
     <section className="on-dark bg-harbour px-5 pt-10 pb-12 text-white sm:pt-14 sm:pb-16">
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
         <p className="text-xs font-semibold tracking-[0.18em] text-white/70 uppercase">
           {BUSINESS.base.suburb} based · {BUSINESS.base.city} to Buderim
         </p>
@@ -36,7 +36,7 @@ export function Hero() {
         </h1>
 
         {showSlider && heroPair ? (
-          <BeforeAfterSlider pair={heroPair} priority />
+          <BeforeAfterSlider pair={heroPair} priority showCaption={false} />
         ) : null}
 
         <p className="max-w-prose text-lg text-white/85">

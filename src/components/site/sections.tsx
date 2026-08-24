@@ -113,6 +113,87 @@ export function ProofStrip() {
  * links to /areas/[suburb] in session 6 when those pages exist. Linking to
  * routes that 404 would be worse than not linking.
  */
+/**
+ * The "simple map graphic" from SPEC §4.7. Deliberately a diagram rather than
+ * a map: it shows the shape of the run - coast on one side, the corridor
+ * north to south, base in the middle - without pretending to be cartography
+ * we have not checked.
+ */
+function CorridorMap() {
+  const stops = [
+    { y: 26, label: "Buderim · Sippy Downs" },
+    { y: 78, label: "Mountain Creek" },
+    { y: 130, label: "Minyama · Buddina" },
+    { y: 182, label: "Kawana · Warana" },
+    { y: 234, label: "Currimundi" },
+    { y: 286, label: "Aroona", base: true },
+    { y: 338, label: "Caloundra · Moffat" },
+    { y: 390, label: "Pelican Waters · Aura" },
+  ];
+
+  return (
+    <svg
+      viewBox="0 0 300 420"
+      className="h-auto w-full max-w-xs"
+      role="img"
+      aria-label="The service area runs north to south from Buderim and Sippy Downs down to Pelican Waters and the Aura estates, with Aroona in the middle."
+    >
+      {/* Ocean side */}
+      <path
+        d="M232 0 C246 60, 238 120, 250 180 C262 240, 246 300, 256 420 L300 420 L300 0 Z"
+        className="fill-harbour/10"
+      />
+      <path
+        d="M232 0 C246 60, 238 120, 250 180 C262 240, 246 300, 256 420"
+        className="stroke-harbour/35"
+        strokeWidth="2"
+        fill="none"
+      />
+      <text x="272" y="210" className="fill-harbour/50 text-[10px]" textAnchor="middle">
+        <tspan x="272" dy="0">Coral</tspan>
+        <tspan x="272" dy="12">Sea</tspan>
+      </text>
+
+      {/* The corridor itself */}
+      <line
+        x1="86"
+        y1="18"
+        x2="86"
+        y2="402"
+        className="stroke-harbour/25"
+        strokeWidth="10"
+        strokeLinecap="round"
+      />
+
+      {stops.map((stop) => (
+        <g key={stop.label}>
+          <circle
+            cx="86"
+            cy={stop.y}
+            r={stop.base ? 9 : 5}
+            className={stop.base ? "fill-hivis" : "fill-harbour"}
+          />
+          {stop.base ? (
+            <circle cx="86" cy={stop.y} r="9" className="fill-none stroke-harbour" strokeWidth="2.5" />
+          ) : null}
+          <text
+            x="104"
+            y={stop.y + 4}
+            className={
+              stop.base
+                ? "fill-ink text-[12px] font-semibold"
+                : "fill-ink-muted text-[11px]"
+            }
+          >
+            {stop.label}
+            {stop.base ? " — our base" : ""}
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 export function ServiceArea() {
   return (
     <Section id="area" labelledBy="area-heading">
@@ -122,6 +203,10 @@ export function ServiceArea() {
         The Caloundra to Buderim corridor, coast and inland. Based in{" "}
         {BUSINESS.base.suburb}, so most of these are a short run for us.
       </p>
+
+      <div className="mt-6 flex justify-center">
+        <CorridorMap />
+      </div>
 
       <div className="mt-6 space-y-5">
         {REGIONS.map((region) => (

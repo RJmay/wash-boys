@@ -199,8 +199,10 @@ three. Ordered by how much each one unblocks.
 
 - [ ] Cloudflare build variables and secrets set (section 3 above), deploy green
 - [ ] Google Business Profile — Aroona base, service-area business
-- [ ] Real before/after photos from soft-launch week, to replace the
-      typographic hero and fill the proof strip
+- [ ] Real before/after photos from soft-launch week, then set
+      `USE_PLACEHOLDER_MEDIA = false` in `src/data/site.ts`. Until then every
+      photo slot carries a stamped placeholder so the layout can be judged —
+      they are loud on purpose, but they must not go live
 
 ### Quote engine (separate track, does not block launch)
 

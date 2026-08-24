@@ -15,7 +15,8 @@
     "cf:typegen": "wrangler types --env-interface CloudflareEnv",
     "flyer": "tsx scripts/flyer.mts",
     "qr": "tsx scripts/qr.mts",
-    "flyer:fonts": "node scripts/fonts.mjs"
+    "flyer:fonts": "node scripts/fonts.mjs",
+    "placeholders": "tsx scripts/placeholders.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

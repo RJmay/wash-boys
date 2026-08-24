@@ -18,9 +18,15 @@ import type { BeforeAfterPair } from "@/data/site";
 export function BeforeAfterSlider({
   pair,
   priority = false,
+  showCaption = true,
+  tone = "light",
 }: {
   pair: BeforeAfterPair;
   priority?: boolean;
+  /** The hero drops the caption - it is noise above the fold. */
+  showCaption?: boolean;
+  /** "dark" = sitting on a harbour panel, so the caption needs light text. */
+  tone?: "light" | "dark";
 }) {
   const [position, setPosition] = useState(50);
   const labelId = useId();
@@ -87,9 +93,19 @@ export function BeforeAfterSlider({
         />
       </div>
 
-      <figcaption className="mt-2 text-sm text-ink-muted">
-        {pair.alt} — {pair.suburb}. Our own work, not a stock photo.
-      </figcaption>
+      {showCaption ? (
+        <figcaption
+          className={`mt-2 text-sm ${tone === "dark" ? "text-white/75" : "text-ink-muted"}`}
+        >
+          {pair.placeholder ? (
+            <>Layout placeholder — a real before and after goes here.</>
+          ) : (
+            <>
+              {pair.alt} — {pair.suburb}. Our own work, not a stock photo.
+            </>
+          )}
+        </figcaption>
+      ) : null}
     </figure>
   );
 }

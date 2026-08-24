@@ -12,20 +12,18 @@ export const BUSINESS = {
   name: "Wash Boys",
   tagline: "Pressure washing, Caloundra to Buderim",
 
-  /** TODO(launch): replace with the real number. Keep both forms in sync. */
   phone: {
     /** Human-readable, as shown on the page and the flyer. */
-    display: "[PHONE]",
-    /** E.164 for `tel:` links — e.g. "+61412345678". */
-    tel: "[PHONE]",
+    display: "0478 474 313",
+    /** E.164 for `tel:` links. */
+    tel: "+61478474313",
   },
 
   /** TODO(launch): replace with the real ABN (footer + flyer trust bar). */
   abn: "[ABN]",
 
-  /** TODO(launch): replace once the domain is bought (KICKOFF session 0). */
-  domain: "[DOMAIN]",
-  email: "bookings@[DOMAIN]",
+  domain: "washboys.com.au",
+  email: "bookings@washboys.com.au",
 
   base: {
     suburb: "Aroona",

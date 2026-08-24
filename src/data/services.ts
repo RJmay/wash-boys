@@ -28,9 +28,8 @@ export type ServiceSlug = (typeof SERVICE_SLUGS)[number];
  * Rate card. Every number in this file traces back to here, so tuning a rate
  * is a one-line change.
  *
- * TODO(pricing): the driveway and house-wash anchors are confirmed business
- * facts (CLAUDE.md). The patio and fence rates below are trade-standard
- * starting points and need the owner's sign-off before flyers are printed.
+ * All four are owner-confirmed: the driveway and house-wash anchors from
+ * CLAUDE.md, and the patio and fence rates signed off Aug 2026.
  */
 export const RATES = {
   /** Patios and paths are priced on area. ~$6-8/m2 with a minimum call-out. */

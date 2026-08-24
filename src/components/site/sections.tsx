@@ -3,7 +3,6 @@ import Link from "next/link";
 import { BUNDLE_MIN_SERVICES, BUSINESS } from "@/data/business";
 import { FAQ } from "@/data/faq";
 import { proofPairs, reviews } from "@/data/site";
-import { REGIONS, suburbsInRegion } from "@/data/suburbs";
 import { BeforeAfterSlider } from "./before-after";
 import { CorridorMap } from "./corridor-map";
 import { card, cta, Section, SectionHeading } from "./ui";
@@ -124,30 +123,7 @@ export function ServiceArea() {
         {BUSINESS.base.suburb}, so most of these are a short run for us.
       </p>
 
-      <div className="mt-6 flex justify-center">
-        <CorridorMap />
-      </div>
-
-      <div className="mt-6 space-y-5">
-        {REGIONS.map((region) => (
-          <div key={region}>
-            <h3 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-harbour uppercase">
-              <span aria-hidden="true" className="h-px w-6 bg-harbour/40" />
-              {region}
-            </h3>
-            <ul className="mt-2 flex flex-wrap gap-2">
-              {suburbsInRegion(region).map((suburb) => (
-                <li
-                  key={suburb.slug}
-                  className="rounded-full border border-line bg-surface px-3 py-1 text-sm text-ink"
-                >
-                  {suburb.name}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+      <CorridorMap />
 
       <p className="mt-6 text-sm text-ink-muted">
         Not on the list? Start a booking anyway and leave your number — we are

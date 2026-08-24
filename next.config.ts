@@ -9,6 +9,15 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(import.meta.dirname),
   },
+
+  /*
+   * Dev only. Next treats 127.0.0.1 as a different origin from localhost and
+   * serves 403 for /_next/static/* across it — the page still renders, because
+   * the HTML is server-side, but no client JS loads and nothing hydrates. That
+   * failure looks like broken interactivity rather than a blocked request, so
+   * allow the loopback address explicitly.
+   */
+  allowedDevOrigins: ["127.0.0.1"],
 };
 
 export default nextConfig;

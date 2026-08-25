@@ -66,6 +66,28 @@ npx wrangler login     # opens a browser
 npm run cf:deploy
 ```
 
+### Reading the dashboard
+
+The **Deployments** list labels almost everything *"Manually deployed"*. That
+is not a sign the Git integration is broken — it is how Cloudflare classifies
+any deployment created through Wrangler, and the deploy command *is*
+`npx wrangler deploy`. Commit-linked history lives in the **Builds** tab, not
+Deployments.
+
+The only proof that matters is behavioural: push a commit, watch a build
+appear in **Builds**, then confirm the change is live on the `workers.dev`
+URL.
+
+### Troubleshooting
+
+| Symptom | Cause |
+|---|---|
+| `Could not find compiled Open Next config` | Build command missing or set to `npm run build`. It must be `npm run cf:build`, or empty with deploy `npm run cf:deploy` |
+| `Missing script: "pages:build"` | The dashboard auto-detected Next.js and filled in the Cloudflare **Pages** command. This project is a Worker; clear it |
+| Two Workers appear, live site stays stale | `name` in wrangler.jsonc does not match the Workers Builds project. Wrangler deploys to the name in the config, not the project running the build |
+| Custom domain returns **HTTP 525** | Stray proxied A/AAAA records pointing at Cloudflare IPs. Cloudflare proxies to itself and the SSL handshake fails. Delete them and attach the domain from the Worker instead |
+| Deploy succeeds but the site has no interactivity | `NEXT_PUBLIC_*` build variables were added after the build. They are inlined at build time — rebuild, do not just redeploy |
+
 ### Plan note
 
 Worker CPU time per request is capped on the free plan, and server-rendering

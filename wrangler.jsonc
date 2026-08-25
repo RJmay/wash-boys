@@ -1,6 +1,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "wash-boys",
+  // MUST match the Workers Builds project name. wrangler deploys to the Worker
+  // named here, not to the project running the build, so a mismatch silently
+  // creates a second Worker and the project you are watching never updates.
+  "name": "wash-boys-biz",
   "main": ".open-next/worker.js",
   // workerd bundled with wrangler 4.125 is 1.20260820.x - do not set this
   // ahead of the runtime or the deploy is rejected.

@@ -46,7 +46,7 @@ push-to-deploy loop and needs no local auth.
    **Build command: leave empty.**
 3. Add the build variables from section 3 **before** the first build (the
    `NEXT_PUBLIC_*` ones are baked in at build time).
-4. Deploy. You get `wash-boys.<your-subdomain>.workers.dev`.
+4. Deploy. You get `wash-boys-biz.<your-subdomain>.workers.dev`.
 
 Every push to `main` then builds and deploys automatically.
 

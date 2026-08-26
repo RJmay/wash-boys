@@ -152,13 +152,21 @@ export function CorridorMap() {
                 {suburb.name}
               </h3>
               <p className="mt-2 text-sm text-ink-muted">{suburb.hook}</p>
-              <Link
-                href={{ pathname: "/book", query: { suburb: suburb.slug } }}
-                className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-harbour underline underline-offset-4"
-              >
-                Book a clean in {suburb.name}
-                <span aria-hidden="true">→</span>
-              </Link>
+              <div className="mt-3 flex flex-col gap-1.5">
+                <Link
+                  href={{ pathname: "/book", query: { suburb: suburb.slug } }}
+                  className="inline-flex items-center gap-1 text-sm font-semibold text-harbour underline underline-offset-4"
+                >
+                  Book a clean in {suburb.name}
+                  <span aria-hidden="true">→</span>
+                </Link>
+                <Link
+                  href={`/areas/${suburb.slug}`}
+                  className="inline-flex items-center gap-1 text-sm text-ink-muted underline underline-offset-4"
+                >
+                  What we see in {suburb.name}
+                </Link>
+              </div>
             </>
           ) : (
             <>

@@ -90,8 +90,19 @@ export function Footer() {
               )}
             </p>
             <p>{BUSINESS.trust.guarantee}</p>
-            {/* TODO(session 6): link /privacy here once the page exists.
-                Not linked while it would 404. */}
+            <p className="pt-1">
+              <Link href="/privacy" className="underline underline-offset-4">
+                Privacy
+              </Link>
+              {" · "}
+              <Link href="/contact" className="underline underline-offset-4">
+                Contact
+              </Link>
+              {" · "}
+              <Link href="/reviews" className="underline underline-offset-4">
+                Reviews
+              </Link>
+            </p>
           </div>
         </div>
 

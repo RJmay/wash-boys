@@ -17,17 +17,21 @@
  * It refuses to write assets while the domain is still a placeholder. A QR
  * pointing at "https://[DOMAIN]/go/PW1" is 1,000 pieces of dead card.
  *
- * NOTE: this writes images only. Registering each code in the `qr_codes`
- * table, and the /go/[code] route that reads it, are session 4. Codes must
- * exist in that table before the flyers drop or the redirect has nothing to
- * look up.
+ * Codes are also registered in the `qr_codes` table when Supabase is
+ * configured, which is what /go/[code] reads to resolve a scan. An unregistered
+ * code still redirects - a scan is worth more than its attribution - but the
+ * batch gets no credit and the per-code funnel is blind.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import QRCode from "qrcode";
 
-import { FLYER_BATCHES } from "../src/data/batches";
+import {
+  CAMPAIGN_WAVE_1,
+  FLYER_BATCHES,
+  getBatch,
+} from "../src/data/batches";
 import { BUSINESS, isPlaceholder } from "../src/data/business";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -72,6 +76,50 @@ export async function writeQr(code: string, baseUrl: string) {
   });
 
   return { url, svg: `${code}.svg`, png: `${code}.png` };
+}
+
+/**
+ * Registers each batch in `qr_codes` (SPEC §7).
+ *
+ * A printed QR that is not in this table redirects to the landing page with
+ * no attribution - the scan still works, but the batch that paid for it gets
+ * no credit and the per-code funnel is blind. Upsert, so re-running after
+ * re-pointing a destination in admin does not clobber it.
+ *
+ * Skipped silently when Supabase is not configured: image generation is the
+ * job, registration is the follow-up.
+ */
+async function registerCodes(
+  batches: { code: string; suburb: string }[],
+): Promise<string> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    return "not registered — Supabase not configured (set it up, then re-run)";
+  }
+
+  const { createClient } = await import("@supabase/supabase-js");
+  const supabase = createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const rows = batches.map((batch) => {
+    const planned = getBatch(batch.code);
+    return {
+      code: batch.code,
+      campaign: planned?.campaign ?? CAMPAIGN_WAVE_1,
+      suburb: batch.suburb || null,
+      destination: "/",
+    };
+  });
+
+  const { error } = await supabase
+    .from("qr_codes")
+    .upsert(rows, { onConflict: "code", ignoreDuplicates: false });
+
+  return error
+    ? `registration FAILED: ${error.message}`
+    : `${rows.length} code(s) registered in qr_codes`;
 }
 
 async function main() {
@@ -135,9 +183,7 @@ async function main() {
   console.log(
     `\n${batches.length} QR code(s) in flyer/qr/ — ${PRINT_PX}px PNG (28mm @ 300dpi), level H, full quiet zone.`,
   );
-  console.log(
-    "Register these in the qr_codes table before the flyers drop (session 4).",
-  );
+  console.log(await registerCodes(batches));
 }
 
 await main();

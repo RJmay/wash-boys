@@ -3,22 +3,44 @@
 import { useEffect, useRef, type ReactNode } from "react";
 
 import { BUSINESS, PHONE_CONFIGURED } from "@/data/business";
+import {
+  ATTRIBUTION_COOKIE,
+  ATTRIBUTION_MAX_AGE,
+  normaliseCode,
+} from "@/lib/attribution";
 import { logEvent } from "@/lib/actions/events";
 
 /**
- * The flyer batch code, read from `?c=` on the landing URL.
+ * The flyer batch code for this visitor.
  *
- * Read on the client rather than from searchParams on the server so the page
- * stays fully static - a static landing page is most of how we hold the
- * LCP < 2.0s budget on 4G at a letterbox. Session 4 adds the first-party
- * cookie so attribution survives a browse.
+ * Checks the URL first, then the first-party cookie that /go/[code] stamps on
+ * the way through. The cookie is what matters: most people scan at the
+ * letterbox, read, wander off, and book later. Without it a booking three days
+ * after the scan looks like organic traffic and the batch that paid for it
+ * gets no credit.
+ *
+ * Read on the client so pages stay static - a static landing page is most of
+ * how the LCP budget is met on 4G.
  */
 export function readSourceCode(): string | undefined {
   if (typeof window === "undefined") return undefined;
-  const raw = new URLSearchParams(window.location.search).get("c");
-  if (!raw) return undefined;
-  const code = raw.trim().toUpperCase();
-  return /^[A-Z0-9]{1,16}$/.test(code) ? code : undefined;
+
+  const fromUrl = normaliseCode(
+    new URLSearchParams(window.location.search).get("c"),
+  );
+  if (fromUrl) {
+    // A ?c= that did not come through /go/ (a typed link, a shared URL) still
+    // deserves to stick for the rest of the visit.
+    document.cookie = `${ATTRIBUTION_COOKIE}=${fromUrl}; path=/; max-age=${ATTRIBUTION_MAX_AGE}; samesite=lax`;
+    return fromUrl;
+  }
+
+  const fromCookie = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith(`${ATTRIBUTION_COOKIE}=`))
+    ?.split("=")[1];
+
+  return normaliseCode(fromCookie) ?? undefined;
 }
 
 /** Logs one `land` event per page view (SPEC §1). Renders nothing. */

@@ -74,6 +74,23 @@ function qrPath(code: string) {
   return path.join(QR_DIR, `${code}.svg`);
 }
 
+/**
+ * ATO ABN checksum. Subtract 1 from the first digit, apply the weight vector,
+ * and a valid ABN sums to a multiple of 89.
+ *
+ * Worth checking because a transposed digit looks completely normal on a proof
+ * and ends up on every flyer and every invoice.
+ */
+const ABN_WEIGHTS = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+
+function validAbn(raw: string): boolean {
+  const digits = raw.replace(/\s/g, "");
+  if (!/^\d{11}$/.test(digits)) return false;
+  const nums = digits.split("").map(Number);
+  nums[0] -= 1;
+  return nums.reduce((t, n, i) => t + n * ABN_WEIGHTS[i], 0) % 89 === 0;
+}
+
 /** Faults that are invisible on screen and fatal once printed. */
 function preflight(codes: string[]): string[] {
   const problems: string[] = [];
@@ -90,6 +107,10 @@ function preflight(codes: string[]): string[] {
   }
   if (isPlaceholder(BUSINESS.abn)) {
     problems.push(`ABN is still ${BUSINESS.abn} — the trust bar claims an ABN`);
+  } else if (!validAbn(BUSINESS.abn)) {
+    problems.push(
+      `ABN ${BUSINESS.abn} fails its checksum — a transposed digit here is printed on every flyer and every invoice`,
+    );
   }
 
   const missingQr = codes.filter((code) => !existsSync(qrPath(code)));

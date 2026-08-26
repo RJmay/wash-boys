@@ -2,10 +2,9 @@
  * Single source of truth for business facts used in copy, schema.org markup
  * and transactional email.
  *
- * LAUNCH BLOCKER: the three bracketed placeholders below are the only place
- * [PHONE], [ABN] and [DOMAIN] appear in the codebase. Replace them here and
- * the whole site is updated. Nothing may be printed on a flyer until they are
- * real (SPEC §9 launch checklist).
+ * Phone, ABN and domain all live here and nowhere else, so there is exactly
+ * one place to change them. All three are now real; the flyer preflight
+ * checks them before it will write print artwork.
  */
 
 export const BUSINESS = {
@@ -19,8 +18,8 @@ export const BUSINESS = {
     tel: "+61478474313",
   },
 
-  /** TODO(launch): replace with the real ABN (footer + flyer trust bar). */
-  abn: "[ABN]",
+  /** Shown in the footer and on the flyer trust bar. Checksum-validated. */
+  abn: "13 746 164 491",
 
   domain: "washboys.com.au",
   email: "bookings@washboys.com.au",

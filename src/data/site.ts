@@ -65,24 +65,28 @@ export const USE_PLACEHOLDER_MEDIA = false;
  * are 2-5MB each); `npm run photos` downscales them, re-encodes to WebP and
  * crops each pair to its common frame so the wipe never makes the house jump.
  *
- * TODO: add the suburb for each of these. The caption names it when set, and
- * "Pelican Waters" under a photo is worth more than any claim we can write.
+ * Every pair names its suburb. For a local trade that word does more work
+ * than any claim we can write - and both house washes being Buderim is the
+ * shade-and-mould story that suburb page already tells.
  */
 const REAL_PAIRS: readonly BeforeAfterPair[] = [
   {
     before: "/photos/driveway-before.webp",
     after: "/photos/driveway-after.webp",
     alt: "Exposed aggregate driveway, before and after a surface clean",
+    suburb: "Pelican Waters",
   },
   {
     before: "/photos/weatherboard-before.webp",
     after: "/photos/weatherboard-after.webp",
     alt: "Weatherboard wall, before and after a soft wash",
+    suburb: "Buderim",
   },
   {
     before: "/photos/render-before.webp",
     after: "/photos/render-after.webp",
     alt: "Rendered wall and timber fence, before and after a soft wash",
+    suburb: "Buderim",
   },
 ];
 

@@ -82,6 +82,18 @@ export function BeforeAfterSlider({
           After
         </span>
 
+        {/*
+          The hero runs without a caption to keep the CTA above the fold, so
+          the suburb rides on the image instead. Naming the street it was shot
+          in is the most persuasive word on the page for a local trade, and it
+          is worth more than the vertical space a caption would cost.
+        */}
+        {!showCaption && pair.suburb ? (
+          <span className="pointer-events-none absolute bottom-3 left-3 rounded bg-ink/75 px-2 py-1 text-xs font-medium text-white">
+            {pair.suburb}
+          </span>
+        ) : null}
+
         {/* Decorative divider that follows the input value. */}
         <div
           aria-hidden="true"

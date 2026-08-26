@@ -16,7 +16,8 @@
     "flyer": "tsx scripts/flyer.mts",
     "qr": "tsx scripts/qr.mts",
     "flyer:fonts": "node scripts/fonts.mjs",
-    "placeholders": "tsx scripts/placeholders.mts"
+    "placeholders": "tsx scripts/placeholders.mts",
+    "photos": "tsx scripts/photos.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

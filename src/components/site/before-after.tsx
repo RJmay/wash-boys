@@ -3,7 +3,22 @@
 import Image from "next/image";
 import { useId, useState } from "react";
 
-import type { BeforeAfterPair } from "@/data/site";
+import type { BeforeAfterPair, ImageAdjust } from "@/data/site";
+
+/**
+ * Turns a framing tweak into inline styles. The container clips, so a scaled
+ * image crops off-screen rather than overflowing - which is what lets the
+ * wider shot fill from the side with spare margin and sit underneath without
+ * the size difference showing at the wipe line.
+ */
+function adjustStyle(adjust?: ImageAdjust): React.CSSProperties | undefined {
+  if (!adjust) return undefined;
+  return {
+    objectPosition: adjust.position,
+    transform: adjust.scale ? `scale(${adjust.scale})` : undefined,
+    transformOrigin: adjust.origin ?? "center",
+  };
+}
 
 /**
  * The signature element (SPEC §2): drag the handle, the clean half follows.
@@ -41,6 +56,7 @@ export function BeforeAfterSlider({
           fill
           sizes="(max-width: 640px) 100vw, 640px"
           className="object-cover"
+          style={adjustStyle(pair.adjust?.after)}
           priority={priority}
         />
 
@@ -54,6 +70,7 @@ export function BeforeAfterSlider({
             fill
             sizes="(max-width: 640px) 100vw, 640px"
             className="object-cover"
+            style={adjustStyle(pair.adjust?.before)}
             priority={priority}
           />
         </div>
@@ -101,7 +118,9 @@ export function BeforeAfterSlider({
             <>Layout placeholder — a real before and after goes here.</>
           ) : (
             <>
-              {pair.alt} — {pair.suburb}. Our own work, not a stock photo.
+              {pair.alt}
+              {pair.suburb ? ` — ${pair.suburb}` : ""}. Our own work, not a
+              stock photo.
             </>
           )}
         </figcaption>

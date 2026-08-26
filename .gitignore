@@ -52,3 +52,6 @@ flyer/out/
 
 # generated QR assets - regenerate with npm run qr (domain-specific)
 flyer/qr/
+
+# original job photos - large, re-encoded into public/photos by npm run photos
+photos-src/

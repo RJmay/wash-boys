@@ -7,6 +7,9 @@
  * day. Queensland has no daylight saving, so a fixed zone is safe.
  */
 
+/** Half-day slots. Tue-Sat AM/PM, plus optional Sun PM overflow. */
+export type Slot = "am" | "pm";
+
 export const TIMEZONE = "Australia/Brisbane";
 
 /** How far ahead the date picker runs (SPEC §5 step 3). */
@@ -61,7 +64,7 @@ export function dayOfWeek(iso: string): number {
  * Working days: Tuesday to Saturday, plus Sunday PM as optional overflow.
  * Monday is off, and a Sunday morning never is - noise (CLAUDE.md).
  */
-export function isWorkingSlot(iso: string, slot: "am" | "pm"): boolean {
+export function isWorkingSlot(iso: string, slot: Slot): boolean {
   const dow = dayOfWeek(iso);
   if (dow >= 2 && dow <= 6) return true;
   return dow === 0 && slot === "pm";

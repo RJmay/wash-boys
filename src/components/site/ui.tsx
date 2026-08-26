@@ -17,6 +17,13 @@ export const ctaQuiet =
 export const card =
   "rounded-xl border border-line bg-surface p-5 shadow-[0_1px_2px_rgba(27,35,40,0.04)]";
 
+/** Text inputs and selects. line-strong is the 3.64:1 perceivable border. */
+export const field =
+  "w-full rounded-lg border border-line-strong bg-surface px-3 py-3 text-ink placeholder:text-ink-muted/70";
+
+/** Error text under a field. Harbour rather than red - red is not in the palette. */
+export const fieldError = "mt-1 text-sm font-medium text-harbour";
+
 /** Section shell: consistent rhythm, and an id for in-page anchors. */
 export function Section({
   id,

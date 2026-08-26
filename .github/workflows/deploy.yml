@@ -1,0 +1,58 @@
+# Deploys the site to Cloudflare Workers on every push to main.
+#
+# This lives in the repo rather than in the Cloudflare dashboard on purpose.
+# Every deploy failure so far came from dashboard build settings: the
+# `pages:build` autofill, a build command that ran `next build` instead of the
+# adapter, and a worker name that did not match wrangler.jsonc. Those are all
+# invisible in code review and easy to get wrong twice. Here the whole
+# pipeline is one file that can be read, diffed and fixed.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  # Lets you re-run a deploy from the Actions tab without an empty commit.
+  workflow_dispatch:
+
+# A newer push makes an in-flight deploy irrelevant - cancel it rather than
+# racing two deploys onto the same Worker.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # Builds Next and adapts it for Workers, producing .open-next/worker.js.
+      # NEXT_PUBLIC_* values are inlined here, at build time - setting them
+      # anywhere later has no effect, which is why they belong on this step.
+      - name: Build
+        run: npm run cf:build
+        env:
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://washboys.com.au' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      # wrangler detects the OpenNext project and ships what the build produced.
+      # It does not rebuild, so the build step above is required.
+      - name: Deploy
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

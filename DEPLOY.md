@@ -33,12 +33,46 @@ serves in the real Workers runtime (`wrangler dev`) — HTTP 200 on `/`, correct
 
 ---
 
-## 1. Cloudflare — get it deploying
+## 1. Deployment — GitHub Actions (current setup)
 
-Two ways in. **Git integration is the one you want** — it matches the
-push-to-deploy loop and needs no local auth.
+Every push to `main` builds and deploys automatically via
+[.github/workflows/deploy.yml](.github/workflows/deploy.yml). Nothing to click.
 
-### Option A — Workers Builds (recommended)
+This lives in the repo rather than the Cloudflare dashboard deliberately.
+Every deploy failure on this project came from dashboard build settings — the
+`pages:build` autofill, a build command running `next build` instead of the
+adapter, a worker name that did not match `wrangler.jsonc`. None of that is
+visible in code review. Here it is one file you can read and diff.
+
+### One-time setup
+
+Add these under **GitHub → repo → Settings → Secrets and variables → Actions**:
+
+| Name | Kind | Value |
+|---|---|---|
+| `CLOUDFLARE_API_TOKEN` | Secret | Cloudflare → My Profile → API Tokens → Create → **Edit Cloudflare Workers** template |
+| `CLOUDFLARE_ACCOUNT_ID` | Secret | Cloudflare dashboard → Workers & Pages → Account ID in the right sidebar |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Secret | Supabase → Settings → API (once it exists) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Variable | Supabase → Settings → API |
+| `NEXT_PUBLIC_SITE_URL` | Variable | Optional — defaults to `https://washboys.com.au` |
+
+The first two are all it needs to deploy. The Supabase ones can wait; the build
+succeeds without them by design.
+
+> **Turn off Cloudflare's Workers Builds if it is still connected.** Two
+> pipelines watching the same branch means every push deploys twice and the
+> slower one wins, which is a confusing way to lose a change.
+
+Re-run a deploy without an empty commit from **Actions → Deploy → Run
+workflow**.
+
+---
+
+## Deploying by hand
+
+Only needed if Actions is down, or for a one-off from your machine.
+
+### Option A — Workers Builds via the dashboard
 
 1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Import a
    repository** → connect GitHub, authorise the `wash-boys` repo.

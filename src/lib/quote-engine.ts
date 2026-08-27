@@ -6,6 +6,12 @@ import {
   isBanded,
   type ServiceSlug,
 } from "@/data/services";
+import {
+  confidenceMultiplier,
+  needsSiteVisit,
+  reconcile,
+  type Reconciliation,
+} from "./quote-reconcile";
 import { quoteEngineUrl } from "./env";
 import { estimateRange, type Estimate, type ServiceSelection } from "./pricing";
 
@@ -65,8 +71,15 @@ export type InstantQuote = {
   lineItems: QuoteLineItem[];
   low: number;
   high: number;
+  /** Engine confidence after reconciling against what the customer told us. */
   confidence: number;
+  /** What the engine reported before reconciliation, for the record. */
+  rawConfidence: number;
   measurements: Record<string, unknown>;
+  /** Per-service comparison of measured area against the size they picked. */
+  reconciliation: Reconciliation[];
+  /** True when a line is far enough out that someone should look at it. */
+  siteVisit: boolean;
 };
 
 export type QuoteOutcome =
@@ -159,10 +172,36 @@ export async function getInstantQuote(
     if (!response.ok) return fallback(`engine returned ${response.status}`);
 
     const data = (await response.json()) as EngineResponse;
-    const confidence = data.confidence ?? 0;
+    const rawConfidence = data.confidence ?? 0;
+
+    /*
+      Cross-check the measurement against what the customer said. Satellite
+      imagery runs one to three years behind, so a new slab or an extension is
+      invisible to it; the customer is looking at the actual property. Neither
+      is authoritative on its own, so agreement is what earns a firm price.
+    */
+    const measuredBySlug = new Map(
+      (data.line_items ?? []).map((item) => [item.slug, item.measured]),
+    );
+    const reconciliation = selections
+      .map((sel) => {
+        const jobId = JOB_IDS[sel.slug];
+        if (!jobId || !sel.bandId) return null;
+        return reconcile(sel.slug, sel.bandId, measuredBySlug.get(jobId));
+      })
+      .filter((r): r is Reconciliation => r !== null);
+
+    const confidence = rawConfidence * confidenceMultiplier(reconciliation);
 
     if (confidence < CONFIDENCE_THRESHOLD) {
-      return fallback(`confidence ${confidence.toFixed(2)} below threshold`);
+      const disagreements = reconciliation
+        .filter((r) => r.agreement === "adjacent" || r.agreement === "distant")
+        .map((r) => `${r.slug}: ${r.reason}`);
+      return fallback(
+        disagreements.length > 0
+          ? `confidence ${confidence.toFixed(2)} after reconciliation — ${disagreements.join("; ")}`
+          : `confidence ${confidence.toFixed(2)} below threshold`,
+      );
     }
 
     const low = data.total_low;
@@ -192,7 +231,10 @@ export async function getInstantQuote(
       low: Math.round(low),
       high: Math.round(high),
       confidence,
+      rawConfidence,
       measurements: data.measurements ?? {},
+      reconciliation,
+      siteVisit: needsSiteVisit(reconciliation),
     };
   } catch (error) {
     const reason =

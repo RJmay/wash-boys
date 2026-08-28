@@ -11,6 +11,14 @@ name: Deploy
 on:
   push:
     branches: [main]
+    # The quote engine deploys to Railway, not here. Without this filter a
+    # one-line change to jobs_config.py would rebuild and redeploy the whole
+    # website for no reason.
+    paths-ignore:
+      - "quote-engine/**"
+      - "**/*.md"
+      - "flyer/**"
+      - "photos-src/**"
   # Lets you re-run a deploy from the Actions tab without an empty commit.
   workflow_dispatch:
 

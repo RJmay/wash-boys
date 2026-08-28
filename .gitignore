@@ -55,3 +55,10 @@ flyer/qr/
 
 # original job photos - large, re-encoded into public/photos by npm run photos
 photos-src/
+
+# quote engine (Python)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.db

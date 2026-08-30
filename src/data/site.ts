@@ -71,22 +71,24 @@ export const USE_PLACEHOLDER_MEDIA = false;
  */
 const REAL_PAIRS: readonly BeforeAfterPair[] = [
   {
+    before: "/photos/house-wash-before.webp",
+    after: "/photos/house-wash-after.webp",
+    alt: "House exterior, before and after a soft wash",
+  },
+  {
     before: "/photos/driveway-before.webp",
     after: "/photos/driveway-after.webp",
-    alt: "Exposed aggregate driveway, before and after a surface clean",
-    suburb: "Pelican Waters",
+    alt: "Driveway, before and after a surface clean",
   },
   {
-    before: "/photos/weatherboard-before.webp",
-    after: "/photos/weatherboard-after.webp",
-    alt: "Weatherboard wall, before and after a soft wash",
-    suburb: "Buderim",
+    before: "/photos/house-side-before.webp",
+    after: "/photos/house-side-after.webp",
+    alt: "The shaded side of a house, before and after a soft wash",
   },
   {
-    before: "/photos/render-before.webp",
-    after: "/photos/render-after.webp",
-    alt: "Rendered wall and timber fence, before and after a soft wash",
-    suburb: "Buderim",
+    before: "/photos/fence-clean-before.webp",
+    after: "/photos/fence-clean-after.webp",
+    alt: "Fence, before and after a clean",
   },
 ];
 

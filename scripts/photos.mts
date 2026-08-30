@@ -35,9 +35,13 @@ const ASPECT = 4 / 3;
  * house never jumps.
  */
 const ALIGN: Record<string, { scale: number; dx: number; dy: number }> = {
-  driveway: { scale: 0.995, dx: -0.085, dy: 0.0033 },
-  weatherboard: { scale: 1.035, dx: 0.005, dy: 0.0233 },
-  // render measured at 1.6% improvement - inside the noise, leave it alone.
+  // Measured by `npm run align`. Re-run it whenever the source photos change
+  // and replace this block wholesale - a stale entry is worse than none, since
+  // it crops a new pair against an old shoot and still reports "(aligned)".
+  // Pairs already within a few pixels are left out on purpose: correcting them
+  // costs resolution and tightens the crop for no visible gain.
+  "fence-clean": { scale: 0.9878, dx: -0.0055, dy: -0.0068 },
+  "house-side": { scale: 0.9923, dx: -0.0029, dy: -0.0037 },
 };
 
 /** Source region of each side that the two shots have in common. */
@@ -79,6 +83,21 @@ mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch({ channel: "chrome" });
 const page = await browser.newPage();
 
+/**
+ * Accepts what a phone and a human actually produce: "House wash before.png",
+ * "driveway-after.jpg", "Fence clean AFTER.png". Renaming eight files by hand
+ * after every job is the kind of friction that stops photos being taken at all.
+ */
+function parseName(file: string): { pairName: string; side: "before" | "after" } | null {
+  const stem = path.parse(file).name;
+  const m = stem.match(/^(.*?)[\s._-]+(before|after)$/i);
+  if (!m) return null;
+  return {
+    pairName: m[1].trim().toLowerCase().replace(/[\s._]+/g, "-"),
+    side: m[2].toLowerCase() as "before" | "after",
+  };
+}
+
 const sources = readdirSync(SRC).filter((f) => /\.(png|jpe?g|webp)$/i.test(f));
 
 for (const file of sources.sort()) {
@@ -87,7 +106,12 @@ for (const file of sources.sort()) {
   // canvas stays untainted and toDataURL works.
   await page.goto(pathToFileURL(src).href, { waitUntil: "load" });
 
-  const [pairName, side] = path.parse(file).name.split("-");
+  const parsed = parseName(file);
+  if (!parsed) {
+    console.log(`  ${file.padEnd(30)} SKIPPED - name must end in "before" or "after"`);
+    continue;
+  }
+  const { pairName, side } = parsed;
   const crop = commonCrop(pairName)[side === "before" ? "before" : "after"];
 
   const encoded = await page.evaluate(
@@ -140,7 +164,7 @@ for (const file of sources.sort()) {
     continue;
   }
 
-  const name = `${path.parse(file).name}.webp`;
+  const name = `${pairName}-${side}.webp`;
   const bytes = Buffer.from(encoded.data.split(",")[1], "base64");
   writeFileSync(path.join(OUT, name), bytes);
 

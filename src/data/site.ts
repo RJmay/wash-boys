@@ -65,30 +65,37 @@ export const USE_PLACEHOLDER_MEDIA = false;
  * are 2-5MB each); `npm run photos` downscales them, re-encodes to WebP and
  * crops each pair to its common frame so the wipe never makes the house jump.
  *
- * Every pair names its suburb. For a local trade that word does more work
- * than any claim we can write - and both house washes being Buderim is the
- * shade-and-mould story that suburb page already tells.
+ * Every pair names its suburb. For a local trade that word does more work than
+ * any claim we can write. All four are Buderim - big shaded blocks under gum
+ * canopy, which is exactly the mould story that suburb page already tells, and
+ * why the first jobs landed there. Worth spreading across the corridor as
+ * Caloundra and Kawana jobs come in, so the proof strip is not one suburb
+ * vouching for the whole service area.
  */
 const REAL_PAIRS: readonly BeforeAfterPair[] = [
   {
     before: "/photos/house-wash-before.webp",
     after: "/photos/house-wash-after.webp",
     alt: "House exterior, before and after a soft wash",
+    suburb: "Buderim",
   },
   {
     before: "/photos/driveway-before.webp",
     after: "/photos/driveway-after.webp",
     alt: "Driveway, before and after a surface clean",
+    suburb: "Buderim",
   },
   {
     before: "/photos/house-side-before.webp",
     after: "/photos/house-side-after.webp",
     alt: "The shaded side of a house, before and after a soft wash",
+    suburb: "Buderim",
   },
   {
     before: "/photos/fence-clean-before.webp",
     after: "/photos/fence-clean-after.webp",
     alt: "Fence, before and after a clean",
+    suburb: "Buderim",
   },
 ];
 

@@ -3,7 +3,16 @@
 import Image from "next/image";
 import { useId, useState } from "react";
 
-import type { BeforeAfterPair, ImageAdjust } from "@/data/site";
+import type { BeforeAfterPair, ImageAdjust, ImageSource } from "@/data/site";
+
+/**
+ * Blur up from the image's own colours rather than popping in from an empty
+ * box. Next generates the placeholder at build time for a static import; a
+ * plain URL has none, and asking for "blur" without one throws.
+ */
+function placeholderFor(src: ImageSource) {
+  return typeof src === "string" ? ("empty" as const) : ("blur" as const);
+}
 
 /**
  * Turns a framing tweak into inline styles. The container clips, so a scaled
@@ -58,6 +67,7 @@ export function BeforeAfterSlider({
           className="object-cover"
           style={adjustStyle(pair.adjust?.after)}
           priority={priority}
+          placeholder={placeholderFor(pair.after)}
         />
 
         <div
@@ -72,6 +82,7 @@ export function BeforeAfterSlider({
             className="object-cover"
             style={adjustStyle(pair.adjust?.before)}
             priority={priority}
+            placeholder={placeholderFor(pair.before)}
           />
         </div>
 

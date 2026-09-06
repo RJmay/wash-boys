@@ -7,6 +7,14 @@
  * small versions, keep the originals out of the repo.
  *
  * Drop new originals in photos-src/ and re-run.
+ *
+ * Output goes to src/photos/, not public/, so site.ts can import the files
+ * rather than reference them by path. That is what makes them cacheable: the
+ * Workers image handler only sends Cache-Control when the source URL is under
+ * /_next/static/media, which is where a static import lands. A path under
+ * public/ gets no cache header at all and is re-fetched on every single visit.
+ * Static imports also hash the filename, so re-shooting a job busts the cache
+ * by itself, and give next/image the blur placeholder for free.
  */
 import { mkdirSync, readdirSync, writeFileSync, existsSync, statSync } from "node:fs";
 import path from "node:path";
@@ -16,7 +24,7 @@ import { chromium } from "playwright-core";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const SRC = path.join(ROOT, "photos-src");
-const OUT = path.join(ROOT, "public", "photos");
+const OUT = path.join(ROOT, "src", "photos");
 
 /** Wide enough for a full-bleed slider on a 2x desktop display. */
 const MAX_WIDTH = 1600;
@@ -176,4 +184,4 @@ for (const file of sources.sort()) {
 }
 
 await browser.close();
-console.log(`\n${sources.length} photo(s) written to public/photos/`);
+console.log(`\n${sources.length} photo(s) written to src/photos/`);

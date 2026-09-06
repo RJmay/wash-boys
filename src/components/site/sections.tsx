@@ -87,7 +87,7 @@ export function ProofStrip() {
       {proofPairs.length > 0 ? (
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
           {proofPairs.map((pair) => (
-            <BeforeAfterSlider key={pair.before} pair={pair} />
+            <BeforeAfterSlider key={pair.alt} pair={pair} />
           ))}
         </div>
       ) : null}

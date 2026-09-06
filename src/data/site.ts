@@ -1,3 +1,14 @@
+import type { StaticImageData } from "next/image";
+
+import drivewayAfter from "@/photos/driveway-after.webp";
+import drivewayBefore from "@/photos/driveway-before.webp";
+import fenceCleanAfter from "@/photos/fence-clean-after.webp";
+import fenceCleanBefore from "@/photos/fence-clean-before.webp";
+import houseSideAfter from "@/photos/house-side-after.webp";
+import houseSideBefore from "@/photos/house-side-before.webp";
+import houseWashAfter from "@/photos/house-wash-after.webp";
+import houseWashBefore from "@/photos/house-wash-before.webp";
+
 /**
  * Switches for content that depends on assets we do not have yet.
  *
@@ -26,10 +37,21 @@ export type ImageAdjust = {
   origin?: string;
 };
 
+/**
+ * A static import (the job photos) or a plain URL (Supabase Storage, once
+ * admin-uploaded photos land).
+ *
+ * Prefer the import. next/image hashes it into /_next/static/media, which is
+ * the only thing the Workers image handler treats as immutable - a string path
+ * under public/ comes back with no Cache-Control at all and is re-downloaded
+ * on every visit. The import also carries its own dimensions and blur
+ * placeholder.
+ */
+export type ImageSource = string | StaticImageData;
+
 export type BeforeAfterPair = {
-  /** Path under /public, or a Supabase Storage URL. */
-  before: string;
-  after: string;
+  before: ImageSource;
+  after: ImageSource;
   /** What the photo actually shows - used as alt text. */
   alt: string;
   /** Where the job was, e.g. "Pelican Waters". Proof it is local. */
@@ -74,26 +96,26 @@ export const USE_PLACEHOLDER_MEDIA = false;
  */
 const REAL_PAIRS: readonly BeforeAfterPair[] = [
   {
-    before: "/photos/house-wash-before.webp",
-    after: "/photos/house-wash-after.webp",
+    before: houseWashBefore,
+    after: houseWashAfter,
     alt: "House exterior, before and after a soft wash",
     suburb: "Buderim",
   },
   {
-    before: "/photos/driveway-before.webp",
-    after: "/photos/driveway-after.webp",
+    before: drivewayBefore,
+    after: drivewayAfter,
     alt: "Driveway, before and after a surface clean",
     suburb: "Buderim",
   },
   {
-    before: "/photos/house-side-before.webp",
-    after: "/photos/house-side-after.webp",
+    before: houseSideBefore,
+    after: houseSideAfter,
     alt: "The shaded side of a house, before and after a soft wash",
     suburb: "Buderim",
   },
   {
-    before: "/photos/fence-clean-before.webp",
-    after: "/photos/fence-clean-after.webp",
+    before: fenceCleanBefore,
+    after: fenceCleanAfter,
     alt: "Fence, before and after a clean",
     suburb: "Buderim",
   },

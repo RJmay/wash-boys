@@ -10,8 +10,13 @@
  * roughly a mid-range Android. Defaults to the live site; pass a URL to check
  * a local build instead.
  *
- * It also reports the second visit. Repeat loads are where a missing
- * Cache-Control shows up, and that is invisible in a cold-load number.
+ * It also checks the second visit, where a missing Cache-Control shows up.
+ * That is invisible in a cold-load number, and is what let every asset on this
+ * site go uncached for months.
+ *
+ * Timings vary run to run - it is measuring a real site over a real network,
+ * and a cold Worker start alone can move TTFB by half a second. Treat one bad
+ * run as noise and look at the trend.
  */
 import { chromium } from "playwright-core";
 
@@ -46,51 +51,44 @@ await context.addInitScript(() => {
   }).observe({ type: "largest-contentful-paint", buffered: true });
 });
 
-type Visit = { lcp: number; ttfb: number; load: number; fetched: number; bytes: number };
+type Visit = {
+  lcp: number;
+  ttfb: number;
+  load: number;
+  fetched: number;
+  cached: number;
+  bytes: number;
+};
 
 /**
- * Each visit gets a fresh page so the navigation timing starts clean, but the
- * same context - which is what keeps the HTTP cache between the two, and makes
- * the second visit mean anything.
+ * One page for both visits, throttled once.
+ *
+ * Throttling is set per CDP session and outlives the page it was attached to,
+ * so opening a fresh page per visit and re-applying it stacks the CPU slowdown
+ * and the second load reads as ten times worse than it is. Reusing the page is
+ * also what keeps the HTTP cache warm, which is the entire point of the second
+ * measurement; a new document resets the navigation timing on its own.
  */
+const page = await context.newPage();
+const cdp = await context.newCDPSession(page);
+await cdp.send("Network.enable");
+await cdp.send("Network.emulateNetworkConditions", {
+  offline: false,
+  downloadThroughput: THROUGHPUT_BPS,
+  uploadThroughput: THROUGHPUT_BPS,
+  latency: LATENCY_MS,
+});
+await cdp.send("Emulation.setCPUThrottlingRate", { rate: CPU_SLOWDOWN });
+
 async function visit(): Promise<Visit> {
-  const page = await context.newPage();
-  const cdp = await context.newCDPSession(page);
-  await cdp.send("Network.enable");
-  await cdp.send("Network.emulateNetworkConditions", {
-    offline: false,
-    downloadThroughput: THROUGHPUT_BPS,
-    uploadThroughput: THROUGHPUT_BPS,
-    latency: LATENCY_MS,
-  });
-  await cdp.send("Emulation.setCPUThrottlingRate", { rate: CPU_SLOWDOWN });
-
-  let fetched = 0;
-  let bytes = 0;
-  page.on("response", async (response) => {
-    if (!/_next\/(image|static)|\.(webp|png|jpg|woff2?|js|css)/.test(response.url())) return;
-    // A response with no server address was served from the browser cache.
-    const fromNetwork = (await response.serverAddr().catch(() => null)) !== null;
-    if (!fromNetwork) return;
-    fetched += 1;
-    const headers: Record<string, string> = await response
-      .allHeaders()
-      .catch(() => ({}) as Record<string, string>);
-    bytes += Number(headers["content-length"] ?? 0);
-  });
-
   await page.goto(URL_TO_CHECK, { waitUntil: "load", timeout: 300000 });
-  // Scroll the page so lazy images below the fold are counted too.
-  await page.evaluate(async () => {
-    for (let y = 0; y < document.body.scrollHeight; y += 500) {
-      window.scrollTo(0, y);
-      await new Promise((r) => setTimeout(r, 150));
-    }
-    window.scrollTo(0, 0);
-  });
-  await page.waitForTimeout(2500);
-
-  const measured = await page.evaluate(() => {
+  // Let the above-the-fold work settle, then take the timing numbers BEFORE
+  // scrolling. LCP keeps updating until a real user interaction, and a
+  // scripted scroll is not one - so scrolling first makes every image that
+  // paints on the way down the new "largest paint" and reports a load time
+  // several seconds worse than anything a visitor experiences.
+  await page.waitForTimeout(1500);
+  const timing = await page.evaluate(() => {
     const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
     return {
       lcp: (window as unknown as { __lcp: number }).__lcp,
@@ -99,33 +97,68 @@ async function visit(): Promise<Visit> {
     };
   });
 
-  await page.close();
-  return { ...measured, fetched, bytes };
-}
+  // Now scroll, so the lazy-loaded images below the fold are fetched and can
+  // be counted. This is about coverage, not timing.
+  await page.evaluate(async () => {
+    for (let y = 0; y < document.body.scrollHeight; y += 500) {
+      window.scrollTo(0, y);
+      await new Promise((r) => setTimeout(r, 150));
+    }
+    window.scrollTo(0, 0);
+  });
+  await page.waitForTimeout(2000);
 
-function report(label: string, v: Visit) {
-  console.log(`\n  ${label}`);
-  console.log(`    TTFB              ${Math.round(v.ttfb)}ms`);
-  console.log(`    load event        ${Math.round(v.load)}ms`);
-  console.log(`    assets from net   ${v.fetched} requests, ${Math.round(v.bytes / 1024)}KB`);
-  const lcp = Math.round(v.lcp);
-  const verdict = lcp <= LCP_BUDGET_MS ? "within budget" : "OVER BUDGET";
-  console.log(`    LCP               ${lcp}ms   (budget ${LCP_BUDGET_MS}ms - ${verdict})`);
+  const assets = await page.evaluate(() => {
+    const assets = performance
+      .getEntriesByType("resource")
+      .filter((r): r is PerformanceResourceTiming => /_next\/(image|static)/.test(r.name));
+    // transferSize 0 with a real body is the browser saying it never went out
+    // to the network. Response headers cannot tell you this - a cache hit still
+    // reports the address it was originally fetched from.
+    const fromCache = assets.filter((r) => r.transferSize === 0 && r.decodedBodySize > 0);
+    const fromNetwork = assets.filter((r) => r.transferSize > 0);
+    return {
+      fetched: fromNetwork.length,
+      cached: fromCache.length,
+      bytes: fromNetwork.reduce((total, r) => total + r.transferSize, 0),
+    };
+  });
+
+  return { ...timing, ...assets };
 }
 
 console.log(`\n  ${URL_TO_CHECK}`);
 console.log(`  375px viewport, 4G (9Mbps / ${LATENCY_MS}ms RTT), ${CPU_SLOWDOWN}x CPU slowdown`);
 
 const cold = await visit();
-report("First visit (cold cache)", cold);
-const warm = await visit();
-report("Second visit (warm cache)", warm);
+const coldLcp = Math.round(cold.lcp);
+const verdict = coldLcp <= LCP_BUDGET_MS ? "within budget" : "OVER BUDGET";
 
-if (warm.fetched >= cold.fetched && cold.fetched > 0) {
+console.log(`\n  First visit - what a new customer gets`);
+console.log(`    TTFB              ${Math.round(cold.ttfb)}ms`);
+console.log(`    load event        ${Math.round(cold.load)}ms`);
+console.log(`    downloaded        ${cold.fetched} assets, ${Math.round(cold.bytes / 1024)}KB`);
+console.log(`    LCP               ${coldLcp}ms   (budget ${LCP_BUDGET_MS}ms - ${verdict})`);
+
+/*
+ * The second visit is a cache check, not a timing one. Timings from a warm
+ * load are not trustworthy here: LCP keeps updating until a real user
+ * interaction, and nothing this script does counts as one, so a scripted
+ * second load reports a paint time no visitor would ever see. What is solid is
+ * where the bytes came from, and that is the thing worth guarding - it is how
+ * a missing Cache-Control gets caught.
+ */
+const warm = await visit();
+console.log(`\n  Second visit - cache reuse`);
+console.log(`    from cache        ${warm.cached} assets`);
+console.log(`    from network      ${warm.fetched} assets, ${Math.round(warm.bytes / 1024)}KB`);
+
+if (warm.fetched > 0) {
   console.log(
-    `\n  WARNING: the second visit re-fetched ${warm.fetched} assets. Anything with` +
-      `\n  a content hash in its name should be served immutable and reused - check` +
-      `\n  public/_headers and that job photos are static imports, not public/ paths.`,
+    `\n  WARNING: the second visit went to the network for ${warm.fetched} asset(s).` +
+      `\n  Everything under /_next/static/ carries a content hash and should come` +
+      `\n  back from cache - check public/_headers, and that the job photos are` +
+      `\n  static imports rather than paths under public/.`,
   );
 }
 

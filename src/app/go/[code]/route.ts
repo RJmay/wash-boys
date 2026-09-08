@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { getBatch } from "@/data/batches";
 import { logEvent } from "@/lib/actions/events";
 import {
   ATTRIBUTION_COOKIE,
@@ -38,6 +39,8 @@ export async function GET(
   let known = false;
 
   if (code) {
+    // The database is authoritative, because it is the thing that lets a
+    // printed code be re-pointed once the flyers are already in letterboxes.
     try {
       const { data } = await createAdminSupabase()
         .from("qr_codes")
@@ -53,6 +56,24 @@ export async function GET(
     } catch {
       // Not configured, or a transient failure. Still redirect - the scan is
       // worth more than the attribution.
+    }
+
+    /*
+      Fall back to the printed batch list. Every code in the wave is known at
+      build time; the database only adds the ability to re-point one. Without
+      this, a wave of 5,500 flyers reports every scan as UNKNOWN whenever
+      Supabase is unreachable or not yet configured - which collapses six
+      suburb codes into one number and loses the only reason to print six.
+
+      Destination stays the landing page here: a re-pointed destination lives
+      in the database, and if we cannot read it we should not guess at it.
+    */
+    if (!known) {
+      const batch = getBatch(code);
+      if (batch) {
+        campaign = batch.campaign;
+        known = true;
+      }
     }
   }
 
@@ -79,8 +100,12 @@ export async function GET(
     secure: process.env.NODE_ENV === "production",
   });
 
-  // Only known codes carry a code on the event; the FK would reject the rest,
-  // and the database trigger would null it anyway.
+  /*
+    Only recognised codes go on the event. A code known from the batch list but
+    not yet registered in qr_codes still fails the foreign key - the trigger
+    catches that, nulls the column and keeps the raw code in meta, so the scan
+    is recorded either way and the gap is visible rather than silent.
+  */
   await logEvent({
     type: "scan",
     code: known && code ? code : undefined,

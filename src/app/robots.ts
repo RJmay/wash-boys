@@ -7,9 +7,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // The booking form and the QR redirect have nothing to index, and
-      // crawling /go/ would log scans that never happened.
-      disallow: ["/book", "/go/"],
+      // The booking form has nothing to index.
+      disallow: ["/book"],
     },
     sitemap: `https://${BUSINESS.domain}/sitemap.xml`,
   };

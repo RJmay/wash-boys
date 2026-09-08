@@ -1,11 +1,14 @@
 /**
- * Flyer attribution (SPEC §7).
+ * Campaign attribution (SPEC §7).
  *
- * A scan lands on `/go/PW1`, which stamps a first-party cookie before
- * redirecting. Without it we would only ever attribute the landing view: most
- * people scan, read, wander off, and come back later to book. The cookie is
- * what lets a booking three days after the scan still count towards the batch
- * that paid for it.
+ * A visitor arriving on `?c=SOMETHING` gets that stamped into a first-party
+ * cookie. Without it we would only ever attribute the landing view: people
+ * read, wander off, and come back later to book, and a booking three days
+ * later otherwise looks like organic traffic.
+ *
+ * The flyer QR points straight at the site with no code on it, so nothing sets
+ * this today. It stays because it costs nothing and it is what any future
+ * campaign link would use.
  */
 
 export const ATTRIBUTION_COOKIE = "wb_c";

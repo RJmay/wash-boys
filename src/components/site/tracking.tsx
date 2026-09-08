@@ -11,13 +11,14 @@ import {
 import { logEvent } from "@/lib/actions/events";
 
 /**
- * The flyer batch code for this visitor.
+ * The campaign code for this visitor, if they arrived carrying one.
  *
- * Checks the URL first, then the first-party cookie that /go/[code] stamps on
- * the way through. The cookie is what matters: most people scan at the
- * letterbox, read, wander off, and book later. Without it a booking three days
- * after the scan looks like organic traffic and the batch that paid for it
- * gets no credit.
+ * Checks the URL first, then the first-party cookie a previous visit stamped.
+ * The cookie is what matters: people read, wander off, and book later, and a
+ * booking three days after the first visit would otherwise look organic.
+ *
+ * The flyer QR carries no code, so this is normally undefined. It exists for
+ * any campaign link that does.
  *
  * Read on the client so pages stay static - a static landing page is most of
  * how the LCP budget is met on 4G.
@@ -29,8 +30,8 @@ export function readSourceCode(): string | undefined {
     new URLSearchParams(window.location.search).get("c"),
   );
   if (fromUrl) {
-    // A ?c= that did not come through /go/ (a typed link, a shared URL) still
-    // deserves to stick for the rest of the visit.
+    // A ?c= from a campaign link should stick for the rest of the visit, not
+    // just the page it landed on.
     document.cookie = `${ATTRIBUTION_COOKIE}=${fromUrl}; path=/; max-age=${ATTRIBUTION_MAX_AGE}; samesite=lax`;
     return fromUrl;
   }

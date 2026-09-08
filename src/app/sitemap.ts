@@ -9,8 +9,8 @@ const SITE = `https://${BUSINESS.domain}`;
 /**
  * Sitemap (SPEC §9).
  *
- * /book and /go/[code] are deliberately absent: one is a form that would
- * compete with the landing page for the same terms, the other is a redirect.
+ * /book is deliberately absent: it is a form, and it would compete with the
+ * landing page for the same terms.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

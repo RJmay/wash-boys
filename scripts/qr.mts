@@ -4,6 +4,10 @@
  *   npm run qr                          # every code in BATCHES
  *   npm run qr -- --code PW1
  *   npm run qr -- --base-url https://washboys.com.au
+ *   npm run qr -- --verify              # check what is on disk, write nothing
+ *
+ * Run --verify before anything goes to a printer. It exits non-zero on a
+ * mismatch, so it can gate a print step rather than just inform one.
  *
  * Print rules this enforces, all from SPEC §7 and FLYER_BRIEF:
  *  - the QR encodes a /go/CODE redirect, never a raw destination URL, so the
@@ -22,7 +26,7 @@
  * code still redirects - a scan is worth more than its attribution - but the
  * batch gets no credit and the per-code funnel is blind.
  */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import QRCode from "qrcode";
@@ -122,6 +126,79 @@ async function registerCodes(
     : `${rows.length} code(s) registered in qr_codes`;
 }
 
+/**
+ * Re-derives every asset and checks it byte for byte against the file on disk
+ * — npm run qr -- --verify
+ *
+ * The manifest records what each code was generated against, but nothing
+ * proved the PNG next to it still matches: a QR looks identical whatever URL
+ * is inside it, and a hand-edited manifest or a half-finished regeneration
+ * leaves no visible trace. Re-encoding is the only check that reads the actual
+ * artwork. Run it before sending anything to a printer - it is the last point
+ * where a wrong URL costs nothing.
+ */
+async function verifyAssets(baseUrl: string): Promise<boolean> {
+  const manifestPath = path.join(QR_DIR, "manifest.json");
+  if (!existsSync(manifestPath)) {
+    console.error("No flyer/qr/manifest.json — run `npm run qr` first.");
+    return false;
+  }
+
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
+    baseUrl: string;
+    codes: Record<string, string>;
+  };
+
+  let ok = true;
+
+  if (manifest.baseUrl !== baseUrl) {
+    console.error(
+      `  manifest was generated against ${manifest.baseUrl}, but the domain is now ${baseUrl}`,
+    );
+    ok = false;
+  }
+
+  for (const [code, recordedUrl] of Object.entries(manifest.codes)) {
+    const expectedUrl = scanUrl(code, baseUrl);
+    const pngPath = path.join(QR_DIR, `${code}.png`);
+    const svgPath = path.join(QR_DIR, `${code}.svg`);
+
+    if (!existsSync(pngPath) || !existsSync(svgPath)) {
+      console.error(`  ${code.padEnd(6)} MISSING asset`);
+      ok = false;
+      continue;
+    }
+
+    const expectedPng = await QRCode.toBuffer(expectedUrl, {
+      ...OPTIONS,
+      type: "png",
+      width: PRINT_PX,
+    });
+    const expectedSvg = await QRCode.toString(expectedUrl, { ...OPTIONS, type: "svg" });
+
+    const pngMatch = Buffer.compare(expectedPng, readFileSync(pngPath)) === 0;
+    const svgMatch = expectedSvg === readFileSync(svgPath, "utf8");
+    const urlMatch = recordedUrl === expectedUrl;
+
+    if (pngMatch && svgMatch && urlMatch) {
+      console.log(`  ${code.padEnd(6)} ok       ${expectedUrl}`);
+      continue;
+    }
+
+    ok = false;
+    const wrong = [
+      urlMatch ? null : `manifest says ${recordedUrl}`,
+      pngMatch ? null : "PNG does not match",
+      svgMatch ? null : "SVG does not match",
+    ]
+      .filter(Boolean)
+      .join(", ");
+    console.error(`  ${code.padEnd(6)} MISMATCH ${expectedUrl} — ${wrong}`);
+  }
+
+  return ok;
+}
+
 async function main() {
   const argv = process.argv.slice(2);
   const value = (name: string) => {
@@ -130,6 +207,24 @@ async function main() {
   };
 
   const { baseUrl, placeholder } = resolveBaseUrl(value("base-url"));
+
+  if (argv.includes("--verify")) {
+    if (placeholder) {
+      console.error("Domain is still a placeholder — nothing here is printable.");
+      process.exitCode = 1;
+      return;
+    }
+    console.log(`Verifying flyer/qr against ${baseUrl}\n`);
+    const ok = await verifyAssets(baseUrl);
+    console.log(
+      ok
+        ? "\nEvery asset encodes the URL it claims. Safe to print."
+        : "\nDO NOT PRINT. Re-run `npm run qr` to regenerate.",
+    );
+    process.exitCode = ok ? 0 : 1;
+    return;
+  }
+
   const only = value("code")?.toUpperCase();
   const batches: { code: string; suburb: string }[] = only
     ? FLYER_BATCHES.filter((b) => b.code === only).map((b) => ({ code: b.code, suburb: b.suburb }))

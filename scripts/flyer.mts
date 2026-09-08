@@ -76,8 +76,9 @@ function buildConfig() {
   };
 }
 
-function qrPath(code: string) {
-  return path.join(QR_DIR, `${code}.svg`);
+/** One QR for every flyer: it opens the website, nothing batch-specific. */
+function qrPath() {
+  return path.join(QR_DIR, "site.svg");
 }
 
 /**
@@ -98,7 +99,7 @@ function validAbn(raw: string): boolean {
 }
 
 /** Faults that are invisible on screen and fatal once printed. */
-function preflight(codes: string[]): string[] {
+function preflight(): string[] {
   const problems: string[] = [];
 
   if (isPlaceholder(BUSINESS.domain)) {
@@ -119,11 +120,8 @@ function preflight(codes: string[]): string[] {
     );
   }
 
-  const missingQr = codes.filter((code) => !existsSync(qrPath(code)));
-  if (missingQr.length > 0) {
-    problems.push(
-      `no QR image for ${missingQr.join(", ")} — run \`npm run qr\` first`,
-    );
+  if (!existsSync(qrPath())) {
+    problems.push("no QR image — run `npm run qr` first");
   }
 
   /*
@@ -165,8 +163,8 @@ function templateUrl(
   if (opts.guides) url.searchParams.set("guides", "1");
   if (opts.cropMarks) url.searchParams.set("cropmarks", "1");
 
-  if (existsSync(qrPath(code))) {
-    url.searchParams.set("qr", pathToFileURL(qrPath(code)).href);
+  if (existsSync(qrPath())) {
+    url.searchParams.set("qr", pathToFileURL(qrPath()).href);
   }
 
   return url.href;
@@ -207,20 +205,20 @@ function buildStandalone(
     `        Generate one with \`npm run qr\` once the domain is live, then\n` +
     `        re-run this command. A QR cannot exist before the domain does.`;
 
-  if (existsSync(qrPath(code))) {
-    const svg = readFileSync(qrPath(code)).toString("base64");
+  if (existsSync(qrPath())) {
+    const svg = readFileSync(qrPath()).toString("base64");
     qrDataUri = `data:image/svg+xml;base64,${svg}`;
 
-    let encodes = `/go/${code}`;
+    let encodes = `https://${BUSINESS.domain}`;
     const manifestPath = path.join(QR_DIR, "manifest.json");
     if (existsSync(manifestPath)) {
       try {
         const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
-          codes?: Record<string, string>;
+          baseUrl?: string;
         };
-        encodes = manifest.codes?.[code] ?? encodes;
+        encodes = manifest.baseUrl ?? encodes;
       } catch {
-        /* fall back to the path form */
+        /* fall back to the domain we are about to print */
       }
     }
     qrNote =
@@ -456,7 +454,7 @@ async function main() {
     return;
   }
 
-  const problems = preflight(batches.map((b) => b.code));
+  const problems = preflight();
 
   if (problems.length > 0 && !proof) {
     console.error(

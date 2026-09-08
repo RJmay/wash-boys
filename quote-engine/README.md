@@ -97,6 +97,25 @@ website turns instant quotes on; until there are real jobs to calibrate
 against, the rates here are market estimates and the reconciliation thresholds
 are guesses.
 
+**The two rate cards do not agree yet.** A live `/quick-quote` on a real
+Wurtulla property, Sept 2026:
+
+| | website (`src/data/services.ts`) | engine |
+|---|---|---|
+| 60m² driveway | $210–300 (double band) | **$305–390** |
+| covered hardstand | not a line item at all | $85–110 |
+| house soft wash | $250–330 (small band) | $250–300 |
+
+House wash agrees. The driveway does not — the engine is roughly 45% over the
+band the website publishes for that size, and it bills covered hardstand
+separately, which the site's model has no concept of. Turning the engine on
+against today's rates would quote a customer materially more than the page they
+just read.
+
+That is the gap the 30-50 job gate exists to close: `final_price` on real jobs
+decides which card is right, and the loser gets moved. Do not reconcile them by
+guessing now.
+
 ## Layout
 
 | File | Purpose |

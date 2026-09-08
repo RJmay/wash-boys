@@ -1,26 +1,29 @@
 /**
- * Renders flyer/dl-flyer.html to PDF per batch code — SPEC §11.
+ * Renders flyer/dl-flyer.html to a print-ready PDF — SPEC §11.
  *
- *   npm run flyer                     # print-ready PDFs, preflight enforced
- *   npm run flyer -- --proof          # proofs, placeholders allowed
- *   npm run flyer -- --code PW1
+ *   npm run flyer                     # print-ready PDF, preflight enforced
+ *   npm run flyer -- --proof          # proof, placeholders allowed
  *   npm run flyer -- --crop-marks     # 6mm margin with trim marks
  *   npm run flyer -- --png            # PNG previews alongside
  *   npm run flyer -- --guides         # trim/safe guides (proof mode only)
+ *   npm run flyer -- --standalone     # self-contained editable HTML
  *
- * Prices and business facts are injected from src/data, so the printed flyer
- * cannot drift from the site.
+ * One flyer, printed once, dropped anywhere in the service area. Prices and
+ * business facts are injected from src/data, so the printed flyer cannot drift
+ * from the site.
  *
  * PREFLIGHT: print mode refuses to write anything while the domain, phone or
- * ABN is a placeholder, or while a batch has no QR image. Those are exactly
- * the faults that are invisible on screen and fatal on 6,000 pieces of card.
- * Use --proof to look at the design before those exist.
+ * ABN is a placeholder, or while the QR is missing or encodes a different
+ * domain than the one printed beside it. Those are exactly the faults that are
+ * invisible on screen and fatal on 5,500 pieces of card. Use --proof to look at
+ * the design before those exist.
  *
  * It also measures the rendered page - overflow, QR size, and how close the QR
- * and batch code sit to the board edge. .page clips its overflow, so a layout
- * that does not fit is cut off silently rather than breaking visibly; that is
- * how the back page shipped 8mm too tall with its QR hanging over the edge.
- * Every check runs per batch and under the seasonal setting in force.
+ * sits to the board edge. .page clips its overflow, so a layout that does not
+ * fit is cut off silently rather than breaking visibly; that is how the back
+ * page came to be 8mm too tall with its QR hanging over the edge. The checks
+ * run under the seasonal setting in force, because the storm-season note is
+ * what pushed it over.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -28,7 +31,6 @@ import { pathToFileURL } from "node:url";
 
 import { chromium, type Browser } from "playwright-core";
 
-import { FLYER_BATCHES } from "../src/data/batches";
 import { BUSINESS, isPlaceholder } from "../src/data/business";
 import {
   BOOKABLE_SERVICES,
@@ -149,15 +151,11 @@ function preflight(): string[] {
   return problems;
 }
 
-function templateUrl(
-  code: string,
-  suburb: string,
-  opts: { guides: boolean; seasonal: boolean; cropMarks: boolean },
-) {
+function templateUrl(opts: { guides: boolean; seasonal: boolean; cropMarks: boolean }) {
   const config = Buffer.from(JSON.stringify(buildConfig())).toString("base64");
   const url = pathToFileURL(TEMPLATE);
-  url.searchParams.set("code", code);
-  url.searchParams.set("suburb", suburb);
+  // No code or suburb: one flyer, the same everywhere. Left unset, the template
+  // falls back to its own area line and leaves the batch slot empty.
   url.searchParams.set("config", config);
   if (opts.seasonal) url.searchParams.set("seasonal", "1");
   if (opts.guides) url.searchParams.set("guides", "1");
@@ -179,11 +177,7 @@ function templateUrl(
  * template in flyer/ stays canonical, so anything you want to keep should end
  * up back there.
  */
-function buildStandalone(
-  code: string,
-  suburb: string,
-  opts: { seasonal: boolean },
-): string {
+function buildStandalone(opts: { seasonal: boolean }): string {
   let html = readFileSync(TEMPLATE, "utf8");
 
   // Inline the webfonts so the file works offline, anywhere.
@@ -228,8 +222,6 @@ function buildStandalone(
   }
 
   const preset = {
-    code,
-    suburb,
     qr: qrDataUri,
     seasonal: opts.seasonal ? "1" : "",
     config: buildConfig(),
@@ -238,7 +230,7 @@ function buildStandalone(
   const banner = `
     <!--
       ============================================================
-      EDITABLE FLYER — Wash Boys DL, ${code}${suburb ? ` (${suburb})` : ""}
+      EDITABLE FLYER — Wash Boys DL
       ============================================================
 
       Self-contained. No internet, no build step. Double-click to open it in
@@ -378,8 +370,6 @@ async function checkGeometry(
 
 async function render(
   browser: Browser,
-  code: string,
-  suburb: string,
   opts: {
     guides: boolean;
     seasonal: boolean;
@@ -389,9 +379,7 @@ async function render(
   },
 ) {
   const page = await browser.newPage();
-  await page.goto(templateUrl(code, suburb, opts), {
-    waitUntil: "networkidle",
-  });
+  await page.goto(templateUrl(opts), { waitUntil: "networkidle" });
   // Local webfonts still have to finish decoding before the PDF is taken.
   await page.evaluate(() => document.fonts.ready);
 
@@ -400,16 +388,14 @@ async function render(
   if (geometry.length > 0 && !opts.proof) {
     await page.close();
     throw new Error(
-      [`${code} is not print ready:`, ...geometry.map((p) => `    - ${p}`)].join("\n  "),
+      ["not print ready:", ...geometry.map((p) => `    - ${p}`)].join("\n  "),
     );
   }
-  if (geometry.length > 0) {
-    for (const problem of geometry) console.warn(`  ! ${code}: ${problem}`);
-  }
+  for (const problem of geometry) console.warn(`  ! ${problem}`);
 
   const pad = opts.cropMarks ? MARK_MARGIN * 2 : 0;
   const suffix = opts.proof ? "-PROOF" : "";
-  const pdfPath = path.join(OUT_DIR, `wash-boys-DL-${code}${suffix}.pdf`);
+  const pdfPath = path.join(OUT_DIR, `wash-boys-DL${suffix}.pdf`);
 
   await page.pdf({
     path: pdfPath,
@@ -422,7 +408,7 @@ async function render(
   if (opts.png) {
     for (const side of ["front", "back"] as const) {
       await page.locator(`#${side}`).screenshot({
-        path: path.join(OUT_DIR, `wash-boys-DL-${code}${suffix}-${side}.png`),
+        path: path.join(OUT_DIR, `wash-boys-DL${suffix}-${side}.png`),
         scale: "device",
       });
     }
@@ -441,19 +427,6 @@ async function main() {
   };
 
   const proof = flag("proof");
-  const only = value("code")?.toUpperCase();
-  const batches = only
-    ? FLYER_BATCHES.filter((b) => b.code === only)
-    : FLYER_BATCHES;
-
-  if (batches.length === 0) {
-    console.error(
-      `No batch called ${only}. Known: ${FLYER_BATCHES.map((b) => b.code).join(", ")}`,
-    );
-    process.exitCode = 1;
-    return;
-  }
-
   const problems = preflight();
 
   if (problems.length > 0 && !proof) {
@@ -490,34 +463,22 @@ async function main() {
     console.log("");
   }
 
-  // Hand-editable copies need no browser at all.
+  // Hand-editable copy needs no browser at all.
   if (flag("standalone")) {
-    for (const batch of batches) {
-      const html = buildStandalone(batch.code, batch.suburb, opts);
-      const out = path.join(
-        OUT_DIR,
-        `wash-boys-DL-${batch.code}-editable.html`,
-      );
-      writeFileSync(out, html, "utf8");
-      console.log(
-        `  ${batch.code.padEnd(6)} ${batch.suburb.padEnd(16)} ${path.basename(out)}  ${(html.length / 1024).toFixed(0)} KB`,
-      );
-    }
+    const html = buildStandalone(opts);
+    const out = path.join(OUT_DIR, "wash-boys-DL-editable.html");
+    writeFileSync(out, html, "utf8");
     console.log(
-      `\n${batches.length} editable file(s) in flyer/out/ — self-contained, open in a browser and Ctrl+P to print.`,
+      `  ${path.basename(out)}  ${(html.length / 1024).toFixed(0)} KB` +
+        `\n\nSelf-contained — open in a browser and Ctrl+P to print.`,
     );
     return;
   }
 
   const browser = await chromium.launch({ channel: value("channel") ?? "chrome" });
-
+  let out: string;
   try {
-    for (const batch of batches) {
-      const out = await render(browser, batch.code, batch.suburb, opts);
-      console.log(
-        `  ${batch.code.padEnd(6)} ${batch.suburb.padEnd(16)} ${path.basename(out)}`,
-      );
-    }
+    out = await render(browser, opts);
   } finally {
     await browser.close();
   }
@@ -526,7 +487,7 @@ async function main() {
     ? `${BOARD.w + MARK_MARGIN * 2} x ${BOARD.h + MARK_MARGIN * 2}mm with trim marks`
     : `${BOARD.w} x ${BOARD.h}mm, bleed included, no marks`;
 
-  console.log(`\n${batches.length} file(s) in flyer/out/ — ${size}.`);
+  console.log(`  ${path.basename(out)} — ${size}.`);
   if (!proof) {
     console.log("Print ready. See flyer/README.md for the printer order spec.");
   }

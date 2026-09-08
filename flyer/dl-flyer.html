@@ -361,7 +361,7 @@
       .back-head {
         background: var(--harbour);
         color: var(--white);
-        padding: var(--safe) var(--safe) 6mm;
+        padding: 5mm var(--safe) 4mm;
       }
 
       .back-head .brand {
@@ -376,7 +376,7 @@
 
       .price-list {
         list-style: none;
-        padding: 7mm var(--safe) 0;
+        padding: 4mm var(--safe) 0;
       }
 
       .price-list li {
@@ -384,7 +384,7 @@
         align-items: baseline;
         justify-content: space-between;
         gap: 3mm;
-        padding: 3.4mm 0;
+        padding: 2.4mm 0;
         border-bottom: 0.25mm solid #d7dddd;
       }
 
@@ -418,10 +418,10 @@
       }
 
       .bundle {
-        margin: 5mm var(--safe) 0;
+        margin: 4mm var(--safe) 0;
         background: var(--hivis);
         color: var(--ink);
-        padding: 3.5mm 4mm;
+        padding: 2.5mm 4mm;
         border-radius: 1.5mm;
         text-align: center;
       }
@@ -441,9 +441,9 @@
       }
 
       .trust {
-        margin: 6mm var(--safe) 0;
+        margin: 4mm var(--safe) 0;
         font-size: 8pt;
-        line-height: 1.5;
+        line-height: 1.35;
         color: var(--ink);
       }
 
@@ -452,12 +452,12 @@
       }
 
       .seasonal {
-        margin: 5mm var(--safe) 0;
+        margin: 4mm var(--safe) 0;
         border: 0.4mm solid var(--harbour);
         border-radius: 1.5mm;
-        padding: 3mm;
+        padding: 2.2mm;
         font-size: 8pt;
-        line-height: 1.4;
+        line-height: 1.3;
         color: var(--harbour);
       }
 
@@ -469,11 +469,11 @@
          when the seasonal line is switched off for non-spring batches. */
       .steps {
         list-style: none;
-        margin: 5mm var(--safe) 0;
+        margin: 4mm var(--safe) 0;
         display: flex;
         flex-direction: column;
-        gap: 2mm;
-        font-size: 8.5pt;
+        gap: 1.2mm;
+        font-size: 8pt;
       }
 
       .steps li {
@@ -484,8 +484,8 @@
 
       .steps b {
         flex: 0 0 auto;
-        width: 5.5mm;
-        height: 5.5mm;
+        width: 5mm;
+        height: 5mm;
         border-radius: 50%;
         background: var(--harbour);
         color: var(--white);
@@ -500,7 +500,7 @@
         margin-top: auto;
         background: var(--harbour-deep);
         color: var(--white);
-        padding: 4mm var(--safe);
+        padding: 4mm var(--safe) var(--safe);
         display: flex;
         align-items: center;
         gap: 3.5mm;
@@ -508,16 +508,16 @@
 
       .back-foot .qr-small {
         flex: 0 0 auto;
-        width: 22mm;
-        padding: 1.5mm;
+        width: 32mm;
+        padding: 2mm;
         background: var(--hivis);
         border-radius: 1mm;
       }
 
       .back-foot .qr-small img,
       .back-foot .qr-small .qr-missing {
-        width: 19mm;
-        height: 19mm;
+        width: 28mm;
+        height: 28mm;
       }
 
       .back-foot .lines {
@@ -531,11 +531,13 @@
         line-height: 1;
       }
 
-      /* Batch code, printed small for tracking. */
+      /* Batch code, printed small for tracking. Sits on the safe line like
+         everything else - at 2.5mm it was inside the 3mm bleed, so the guillotine
+         took it off and a printed flyer could not be traced back to its batch. */
       .batch-code {
         position: absolute;
         right: var(--safe);
-        bottom: 2.5mm;
+        bottom: var(--safe);
         font-size: 5.5pt;
         letter-spacing: 0.08em;
         color: rgba(255, 255, 255, 0.55);

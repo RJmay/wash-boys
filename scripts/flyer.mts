@@ -15,6 +15,12 @@
  * ABN is a placeholder, or while a batch has no QR image. Those are exactly
  * the faults that are invisible on screen and fatal on 6,000 pieces of card.
  * Use --proof to look at the design before those exist.
+ *
+ * It also measures the rendered page - overflow, QR size, and how close the QR
+ * and batch code sit to the board edge. .page clips its overflow, so a layout
+ * that does not fit is cut off silently rather than breaking visibly; that is
+ * how the back page shipped 8mm too tall with its QR hanging over the edge.
+ * Every check runs per batch and under the seasonal setting in force.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -279,6 +285,99 @@ function buildStandalone(
   return html.replace(/<head>/, `<head>${banner}`);
 }
 
+/** FLYER_BRIEF: minimum 28x28mm printed, or phones stop scanning it reliably. */
+const QR_MIN_MM = 28;
+/** 3mm bleed the guillotine removes, plus 5mm of safety. */
+const SAFE_MM = 8;
+
+/**
+ * Geometry preflight, measured on the rendered page.
+ *
+ * The other preflight reads src/data and catches wrong values. It cannot see
+ * layout, and layout is where the expensive mistakes hide: `.page` clips its
+ * overflow, so content that does not fit is silently cut off rather than
+ * spilling somewhere visible. That is how the back page came to be 8mm too
+ * tall with its QR hanging past the board edge - the artwork looked correct in
+ * every preview, and the fault only appears after the guillotine.
+ *
+ * It runs per batch because suburb names wrap differently, and with whatever
+ * seasonal setting is in force - the storm-season note is what pushed the back
+ * page over, so checking only the quiet-season layout proves nothing in
+ * September.
+ */
+async function checkGeometry(
+  page: Awaited<ReturnType<Browser["newPage"]>>,
+): Promise<string[]> {
+  return page.evaluate(
+    ({ qrMin, safe }) => {
+      const ruler = document.createElement("div");
+      ruler.style.cssText = "width:100mm;height:1px;position:absolute;top:-9999px";
+      document.body.appendChild(ruler);
+      const perMm = ruler.offsetWidth / 100;
+      ruler.remove();
+
+      /*
+        No helper functions in here. This body is serialised and run inside the
+        browser, where the helper esbuild emits for a named function expression
+        does not exist - it fails with "__name is not defined".
+      */
+      const problems: string[] = [];
+      const pages = [...document.querySelectorAll(".page")];
+
+      for (let index = 0; index < pages.length; index++) {
+        const pageEl = pages[index];
+        const side = index === 0 ? "front" : "back";
+        const box = pageEl.getBoundingClientRect();
+
+        const overflow = (pageEl.scrollHeight - box.height) / perMm;
+        if (overflow > 0.5) {
+          problems.push(
+            `${side} page content is ${overflow.toFixed(1)}mm taller than the board — the bottom is being cut off`,
+          );
+        }
+
+        for (const qr of pageEl.querySelectorAll(".qr-frame img, .qr-small img")) {
+          const r = qr.getBoundingClientRect();
+          const width = r.width / perMm;
+          if (width + 0.05 < qrMin) {
+            problems.push(
+              `${side} QR is ${width.toFixed(1)}mm — under the ${qrMin}mm minimum, phones will struggle with it`,
+            );
+          }
+          const closest = Math.min(
+            (r.top - box.top) / perMm,
+            (box.bottom - r.bottom) / perMm,
+            (r.left - box.left) / perMm,
+            (box.right - r.right) / perMm,
+          );
+          if (closest + 0.05 < safe) {
+            problems.push(
+              `${side} QR sits ${closest.toFixed(1)}mm from the board edge — needs ${safe}mm to clear the trim`,
+            );
+          }
+        }
+
+        const batch = pageEl.querySelector(".batch-code");
+        if (batch) {
+          const r = batch.getBoundingClientRect();
+          const closest = Math.min(
+            (box.bottom - r.bottom) / perMm,
+            (box.right - r.right) / perMm,
+          );
+          if (closest + 0.05 < safe) {
+            problems.push(
+              `${side} batch code sits ${closest.toFixed(1)}mm from the board edge — it would be trimmed off`,
+            );
+          }
+        }
+      }
+
+      return problems;
+    },
+    { qrMin: QR_MIN_MM, safe: SAFE_MM },
+  );
+}
+
 async function render(
   browser: Browser,
   code: string,
@@ -297,6 +396,18 @@ async function render(
   });
   // Local webfonts still have to finish decoding before the PDF is taken.
   await page.evaluate(() => document.fonts.ready);
+
+  // Measure before writing anything, so a bad layout never reaches flyer/out.
+  const geometry = await checkGeometry(page);
+  if (geometry.length > 0 && !opts.proof) {
+    await page.close();
+    throw new Error(
+      [`${code} is not print ready:`, ...geometry.map((p) => `    - ${p}`)].join("\n  "),
+    );
+  }
+  if (geometry.length > 0) {
+    for (const problem of geometry) console.warn(`  ! ${code}: ${problem}`);
+  }
 
   const pad = opts.cropMarks ? MARK_MARGIN * 2 : 0;
   const suffix = opts.proof ? "-PROOF" : "";

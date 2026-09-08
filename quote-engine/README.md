@@ -19,8 +19,15 @@ address → geocode → aerial imagery → Claude vision → measurements → pr
   15-30cm. Free, no key, no quota. See `qimagery_agent.py`.
 - **Boundaries:** QLD DCDB cadastral parcels, so measurements are clipped to
   the actual lot rather than guessed from a square around a pin.
+- **Boundary overlay is drawn locally.** The parcel outline used to come from
+  Google Static Maps; it is now drawn onto the Queensland tile from the DCDB
+  geometry we already have. Without an outline the vision model measures a
+  fixed square of suburb and cannot tell which roof belongs to the customer —
+  it returned a 392m² roof on a 753m² block by counting the neighbours.
 - **Google is used for geocoding only** — one call per quote, turning an
-  address into coordinates.
+  address into coordinates. It stays because OpenStreetMap house-number
+  coverage across the corridor is 8–14%, so Nominatim would put most customers
+  on a street or suburb centroid and measure the wrong property.
 
 ## Running it
 
@@ -37,6 +44,12 @@ uvicorn main:app --reload
 > Geocoding is a server-side API with no referrer, so a referrer-restricted key
 > is rejected outright with `REQUEST_DENIED`, which reads like a billing or
 > enablement problem and is not one.
+
+> `DATABASE_URL` is a Postgres connection string, not the Supabase project URL.
+> Supabase shows both; the one you want is Settings → Database → Connection
+> string → URI, and it starts `postgresql://`. An `https://` value fails at
+> import with `Can't load plugin: sqlalchemy.dialects:https`, which does not
+> obviously point at the cause.
 
 Test quotes (each real one is a paid Claude call):
 

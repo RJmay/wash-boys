@@ -115,18 +115,25 @@ class MapsVisionAgent:
                 cadastre_task, images_task
             )
 
-            # Re-fetch boundary-framed image if cadastre succeeded
+            # Re-frame the context view to the lot itself, with its boundary
+            # drawn on. Without this the model measures a fixed square of
+            # suburb and cannot tell which roof is the customer's.
             if cadastre_result:
                 logger.info(f"Cadastre: {cadastre_result.lotplan} = {cadastre_result.area_sqm:.0f}m²")
-                mp = bbox_to_map_params(cadastre_result.bbox)
-                boundary_img = await self._fetch_boundary_image(
-                    mp["center_lat"], mp["center_lng"], mp["zoom"], cadastre_result
+                boundary_img = await qimagery_agent.fetch_boundary_view(
+                    cadastre_result.polygon, cadastre_result.bbox
                 )
                 if boundary_img:
-                    # The boundary overlay is drawn by Google, so it comes back
-                    # as PNG even when the detail view is QImagery. Each image
-                    # declares its own media type, so mixing them is fine.
-                    wide_img = SourceImage(boundary_img, "image/png", "google")
+                    wide_img = SourceImage(boundary_img, "image/jpeg", "qimagery")
+                else:
+                    # Google draws the same overlay, on coarser imagery and
+                    # behind a second API key. Only reached if QLD is down.
+                    mp = bbox_to_map_params(cadastre_result.bbox)
+                    fallback = await self._fetch_boundary_image(
+                        mp["center_lat"], mp["center_lng"], mp["zoom"], cadastre_result
+                    )
+                    if fallback:
+                        wide_img = SourceImage(fallback, "image/png", "google")
 
             if not tight_img:
                 return AgentResult(success=False, error="Satellite fetch failed",

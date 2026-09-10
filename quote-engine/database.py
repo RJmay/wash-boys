@@ -151,7 +151,17 @@ class Quote(Base):
 
 
 class Booking(Base):
-    __tablename__ = "bookings"
+    # NOT "bookings". The website owns a `bookings` table in the same Postgres,
+    # and the two are incompatible: the website's requires name, phone, slot
+    # and preferred_date, this one has customer_name, customer_phone and
+    # preferred_time. Whichever service reaches the database first wins and
+    # breaks the other - create_all silently skips a table that already exists,
+    # so the failure surfaces later as an insert error, nowhere near the cause.
+    #
+    # This table is the quote engine's own. The website's booking flow is the
+    # one customers use; this is here for the engine's /booking endpoint, which
+    # came across with the import.
+    __tablename__ = "engine_bookings"
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     quote_id = Column(String, nullable=False)
     customer_name = Column(String, nullable=False)

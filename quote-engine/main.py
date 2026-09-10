@@ -276,6 +276,51 @@ async def quick_quote(
         )
 
 
+"""
+Ceilings for an instant quote, mirroring src/data/services.ts.
+
+The website's top driveway band ("Bigger than that", over 130m2) is quote-only,
+and its two-storey house band is too. These are the same lines, so a property
+the site would refuse to price cannot be priced by the engine either.
+
+The lot ceiling has no equivalent on the site because the site never sees a
+lot: 2,000m2 is about three generous suburban blocks, and past it we are
+looking at acreage, a body corporate or a commercial site - none of which is a
+job you quote from an aerial photograph.
+"""
+MAX_INSTANT_DRIVEWAY_SQM = 130.0
+MAX_INSTANT_ROOF_SQM = 500.0
+MAX_INSTANT_LOT_SQM = 2000.0
+
+
+def _measurement_block(area) -> dict:
+    return {
+        "lawn_sqm": round(area.lawn_sqm),
+        "roof_sqm": round(area.roof_sqm),
+        "gutter_length_m": round(area.gutter_length_m, 1),
+        "driveway_exposed_sqm": round(area.driveway_exposed_sqm),
+        "driveway_covered_sqm": round(area.driveway_covered_sqm),
+        "garden_sqm": round(area.garden_sqm),
+        "overhang_detected": area.overhang_detected,
+        "satellite_confidence": area.overall_confidence,
+        "cadastre_block_sqm": round(area.cadastre_area_sqm) if area.cadastre_area_sqm else None,
+        "cadastre_lotplan": area.cadastre_lotplan,
+        "measurement_method": "cadastre+satellite" if area.cadastre_area_sqm else "satellite_only",
+    }
+
+
+def _beyond_instant_quote(area) -> Optional[str]:
+    """The reason this property cannot be priced from the air, or None."""
+    driveway = area.driveway_exposed_sqm + area.driveway_covered_sqm
+    if driveway > MAX_INSTANT_DRIVEWAY_SQM:
+        return f"driveway measures {driveway:.0f}m2, over the {MAX_INSTANT_DRIVEWAY_SQM:.0f}m2 instant-quote limit"
+    if area.roof_sqm > MAX_INSTANT_ROOF_SQM:
+        return f"roof measures {area.roof_sqm:.0f}m2, over the {MAX_INSTANT_ROOF_SQM:.0f}m2 instant-quote limit"
+    if area.cadastre_area_sqm and area.cadastre_area_sqm > MAX_INSTANT_LOT_SQM:
+        return f"lot is {area.cadastre_area_sqm:,.0f}m2, past the {MAX_INSTANT_LOT_SQM:,.0f}m2 residential ceiling"
+    return None
+
+
 async def _quick_quote_inner(
     request_obj: Request,
     body: QuickQuoteRequest,
@@ -418,27 +463,41 @@ async def _quick_quote_inner(
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail=f"Claude returned non-JSON: {raw[:200]}")
 
+    # ── Step 6b: Refuse to instant-quote a property off the residential scale ─
+    #
+    # A sweep across the service area put one address on a retirement village:
+    # an 83,397m2 lot with a 3,336m2 driveway, which came back as a confident
+    # $13,900-17,200 instant quote. Nothing in here objected, because nothing
+    # in here had an opinion about how big a house is.
+    #
+    # The website already refuses above 130m2 of driveway (the "Bigger than
+    # that" band in src/data/services.ts is quote-only). The engine needs the
+    # same ceiling, or it will hand a number to anything with a roof.
+    oversize = _beyond_instant_quote(area_result)
+    if oversize:
+        logger.info(f"Quick-quote: {oversize} — returning site-visit response")
+        return {
+            "instant_quote": False,
+            "reason": oversize,
+            "message": (
+                "This one is bigger than we can price from the air. "
+                "We will take a look and come back to you with a firm number."
+            ),
+            "address": body.address,
+            "suburb_detected": suburb,
+            "measurements": _measurement_block(area_result),
+            "from_cache": False,
+        }
+
     # ── Step 7: Save and return ───────────────────────────────────────────────
+    data["instant_quote"] = True
     data["expires_at"] = (datetime.utcnow() + timedelta(hours=48)).isoformat()
     data["from_cache"] = False
     data["area_source"] = area_source
     data["condition_score"] = condition_score
     data["condition_source"] = condition_source
     data["suburb_detected"] = suburb
-    data["measurements"] = {
-        "lawn_sqm": round(area_result.lawn_sqm),
-        "roof_sqm": round(area_result.roof_sqm),
-        "gutter_length_m": round(area_result.gutter_length_m, 1),
-        "driveway_exposed_sqm": round(area_result.driveway_exposed_sqm),
-        "driveway_covered_sqm": round(area_result.driveway_covered_sqm),
-        "garden_sqm": round(area_result.garden_sqm),
-        "overhang_detected": area_result.overhang_detected,
-        "satellite_confidence": area_result.overall_confidence,
-        # Option 5 cadastre data
-        "cadastre_block_sqm": round(area_result.cadastre_area_sqm) if area_result.cadastre_area_sqm else None,
-        "cadastre_lotplan": area_result.cadastre_lotplan,
-        "measurement_method": "cadastre+satellite" if area_result.cadastre_area_sqm else "satellite_only",
-    }
+    data["measurements"] = _measurement_block(area_result)
 
     try:
         saved = await save_quote(

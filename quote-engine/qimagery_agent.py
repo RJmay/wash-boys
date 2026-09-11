@@ -101,6 +101,43 @@ def _bbox_for(lat: float, lon: float, half_metres: float) -> str:
     return f"{x - h},{y - h},{x + h},{y + h}"
 
 
+def _is_blank(image: bytes) -> bool:
+    """
+    True when the service handed back an empty tile rather than imagery.
+
+    The ImageServer answers 200 with a valid, well-formed, entirely black JPEG
+    when it is throttling or unwell - seen across every Queensland location at
+    once in Sept 2026, while the capture-date service beside it kept working.
+    A size check does not catch it: a black 900x900 JPEG is still 13KB.
+
+    This matters more than an ordinary outage. The vision model dutifully
+    reports zero of everything from a black image, and zero measurements price
+    as a small job, so the failure arrives as a cheap quote for a property
+    nobody ever looked at. Returning None instead puts it down the honest path
+    where the engine says it could not measure.
+
+    Deliberately strict: a tile of dark canal water still averages well above
+    this, so only a genuinely empty response trips it.
+    """
+    try:
+        import io
+
+        from PIL import Image
+    except ImportError:
+        return False  # Cannot tell; better to pass it through than guess.
+
+    try:
+        grey = Image.open(io.BytesIO(image)).convert("L")
+        pixels = grey.getdata()
+        total = len(pixels)
+        if total == 0:
+            return True
+        near_black = sum(1 for p in pixels if p < 10)
+        return (sum(pixels) / total) < 6.0 and near_black / total > 0.99
+    except Exception:  # noqa: BLE001 - a tile we cannot read is not our problem here
+        return False
+
+
 def _draw_boundary(
     image: bytes,
     polygon: list[tuple[float, float]],
@@ -205,6 +242,13 @@ class QImageryAgent:
             if not resp.headers.get("content-type", "").startswith("image/"):
                 # ArcGIS reports errors as JSON with a 200.
                 logger.warning("QImagery: expected an image, got %s", resp.text[:200])
+                return None
+            if _is_blank(resp.content):
+                logger.warning(
+                    "QImagery: blank tile for %.4f,%.4f — service is throttling or down",
+                    lat,
+                    lon,
+                )
                 return None
             return resp.content
         except Exception as exc:  # noqa: BLE001 - imagery must never be fatal
@@ -340,6 +384,9 @@ class QImageryAgent:
                 logger.warning(
                     "QImagery: boundary view returned %s", resp.status_code
                 )
+                return None
+            if _is_blank(resp.content):
+                logger.warning("QImagery: blank boundary tile — service is throttling or down")
                 return None
             return _draw_boundary(resp.content, polygon, (x0, y0, x1, y1), size)
         except Exception as exc:  # noqa: BLE001 - imagery must never be fatal

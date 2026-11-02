@@ -19,7 +19,6 @@ export function generateStaticParams() {
   return SERVICE_PAGES.map((s) => ({ slug: s.slug }));
 }
 
-export const dynamicParams = false;
 
 export async function generateMetadata({
   params,

@@ -25,7 +25,6 @@ export function generateStaticParams() {
   return SUBURBS.map((s) => ({ suburb: s.slug }));
 }
 
-export const dynamicParams = false;
 
 export async function generateMetadata({
   params,

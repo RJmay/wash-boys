@@ -1,14 +1,15 @@
 /**
- * Campaign attribution (SPEC §7).
+ * Flyer attribution.
  *
- * A visitor arriving on `?c=SOMETHING` gets that stamped into a first-party
- * cookie. Without it we would only ever attribute the landing view: people
- * read, wander off, and come back later to book, and a booking three days
- * later otherwise looks like organic traffic.
+ * Each flyer's QR opens the site with `?src=STREETGROUP`, one code per flyer
+ * street group. The code is stamped into a first-party cookie on arrival so a
+ * booking made days later, from a bookmark, still credits the street group
+ * that brought them. `?c=` is still read as a fallback for any older link.
  *
- * The flyer QR points straight at the site with no code on it, so nothing sets
- * this today. It stays because it costs nothing and it is what any future
- * campaign link would use.
+ * Codes are case-insensitive and stored uppercase, e.g. `?src=aroona-3` is
+ * recorded as `AROONA-3`. Register them in the qr_codes table for funnel
+ * joins; an unregistered code is still kept on the booking (`source`) and in
+ * the event's meta, never dropped.
  */
 
 export const ATTRIBUTION_COOKIE = "wb_c";
@@ -16,8 +17,8 @@ export const ATTRIBUTION_COOKIE = "wb_c";
 /** Long enough to cover a second flyer pass and a slow decision. */
 export const ATTRIBUTION_MAX_AGE = 60 * 60 * 24 * 90;
 
-/** Printed codes are short and uppercase; anything else is not one of ours. */
-const CODE = /^[A-Z0-9]{1,16}$/;
+/** Street-group codes: letters, digits, dash and underscore. */
+const CODE = /^[A-Z0-9_-]{1,32}$/;
 
 export function normaliseCode(raw: string | undefined | null): string | null {
   if (!raw) return null;
@@ -25,9 +26,5 @@ export function normaliseCode(raw: string | undefined | null): string | null {
   return CODE.test(code) ? code : null;
 }
 
-/**
- * What we record when a printed code is not in the database - a misread scan,
- * a typo, or a batch that was never registered. Never a 404: someone is
- * standing at a letterbox holding the flyer.
- */
-export const UNKNOWN_CODE = "UNKNOWN";
+/** URL parameters that carry a code, in priority order. */
+export const SOURCE_PARAMS = ["src", "c"] as const;

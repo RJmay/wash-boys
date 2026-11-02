@@ -1,20 +1,23 @@
+import areas from "./service-areas.json";
+
 /**
- * Service area: the Caloundra-Kawana-Buderim corridor. Sippy Downs and
- * Buderim in the north, down to Nirimba and Pelican Waters in the south,
- * coast and inland (CLAUDE.md).
+ * Service area: the original 28-suburb Caloundra-Kawana-Buderim corridor, plus
+ * Kuluin and Forest Glen.
+ *
+ * Two sources, merged here so nothing else has to care:
+ *  - this file holds every suburb we serve, with its postcode, region and
+ *    `hook` (what actually dirties houses there);
+ *  - service-areas.json holds the flyer-priority suburbs, in drop order, with
+ *    the owner's own local blurb. Where a suburb has a blurb it leads the
+ *    suburb page; the hook follows as the second paragraph.
  *
  * This list is the gate in three places:
- *  - the booking flow's suburb <select> - anything not here is an out-of-area
- *    lead, never a booking (SPEC §5 step 2);
- *  - /areas/[suburb] SEO pages, generated one per entry (SPEC §9);
- *  - the suburb chips on the landing page.
+ *  - the booking form's suburb <select> - "Other" becomes an enquiry, never a
+ *    booking;
+ *  - /areas/[suburb] SEO pages, generated one per entry;
+ *  - LocalBusiness `areaServed` in the structured data.
  *
- * `hook` is the grime/character line each area page is built around - what
- * actually dirties houses there. Keep them specific and true; they are the
- * only thing making 28 pages different from each other.
- *
- * TODO(launch): postcodes feed schema.org markup - spot-check them against
- * Australia Post before the SEO pages go live.
+ * Next booking dates per suburb live in street-days.json, not here.
  */
 
 export type SuburbTier = 1 | 2 | 3;
@@ -31,10 +34,15 @@ export type Suburb = {
    * 1 premium (highest tickets), 2 volume/home turf, 3 filler.
    */
   tier: SuburbTier;
-  hook: string;
+  /** What dirties houses here. Absent for suburbs that only have a blurb. */
+  hook?: string;
+  /** Owner's blurb from service-areas.json, when the suburb is listed there. */
+  blurb?: string;
+  /** Flyer priority from service-areas.json (1 = first). Undefined = unranked. */
+  priority?: number;
 };
 
-export const SUBURBS: readonly Suburb[] = [
+const CORRIDOR: readonly Suburb[] = [
   // Caloundra
   {
     slug: "pelican-waters",
@@ -266,11 +274,50 @@ export const SUBURBS: readonly Suburb[] = [
     tier: 3,
     hook: "Harmony estate homes bordering bush and creek flats - pale driveways, fresh render and plenty of dust.",
   },
+
+  // North of Buderim, added Nov 2026 with the exterior-services relaunch.
+  // No hook yet - their pages lead with the blurb in service-areas.json.
+  {
+    slug: "forest-glen",
+    name: "Forest Glen",
+    postcode: "4556",
+    region: "Buderim",
+    tier: 2,
+  },
+  {
+    slug: "kuluin",
+    name: "Kuluin",
+    postcode: "4558",
+    region: "Buderim",
+    tier: 2,
+  },
 ];
+
+type AreaEntry = (typeof areas.areas)[number];
+const LISTED = new Map<string, AreaEntry>(areas.areas.map((a) => [a.slug, a]));
+
+/**
+ * Every suburb, priority suburbs first in drop order, then the rest of the
+ * corridor in its original order.
+ */
+export const SUBURBS: readonly Suburb[] = CORRIDOR.map((suburb) => {
+  const listed = LISTED.get(suburb.slug);
+  return listed
+    ? { ...suburb, postcode: listed.postcode, blurb: listed.blurb, priority: listed.priority }
+    : suburb;
+}).sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99));
+
+/** The suburbs in service-areas.json, in priority order. */
+export const PRIORITY_SUBURBS = SUBURBS.filter((s) => s.priority !== undefined);
+
+/** Lead paragraph for a suburb page: the owner's blurb, else the hook. */
+export function suburbIntro(suburb: Suburb): string {
+  return suburb.blurb ?? suburb.hook ?? "";
+}
 
 export const SUBURB_SLUGS = SUBURBS.map((s) => s.slug);
 
-/** Alphabetical, for the booking flow's <select>. */
+/** Alphabetical, for the booking form's <select>. */
 export const SUBURBS_ALPHABETICAL = [...SUBURBS].sort((a, b) =>
   a.name.localeCompare(b.name),
 );
@@ -282,7 +329,7 @@ export function getSuburb(slug: string): Suburb | undefined {
   return BY_SLUG.get(slug);
 }
 
-/** True when we service this suburb - the out-of-area check (SPEC §5). */
+/** True when we service this suburb - anything else is an enquiry. */
 export function isServicedSuburb(slug: string): boolean {
   return BY_SLUG.has(slug);
 }

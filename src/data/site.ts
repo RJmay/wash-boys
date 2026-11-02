@@ -13,9 +13,9 @@ import houseWashBefore from "@/photos/house-wash-before.webp";
  * Switches for content that depends on assets we do not have yet.
  *
  * The hard rule behind all of this (CLAUDE.md, SPEC §2): real photos of our
- * own work only. No stock before/afters, no borrowed reviews. Until the first
- * driveways are done in soft-launch week, the page shows an honest empty state
- * instead of a fake one.
+ * own work only. No stock before/afters, no borrowed reviews. A service with
+ * no real pair yet (gutters, windows, gutter guard) shows a visible
+ * placeholder instead of a fake one.
  */
 
 /**
@@ -50,6 +50,8 @@ export type ImageAdjust = {
 export type ImageSource = string | StaticImageData;
 
 export type BeforeAfterPair = {
+  /** The service this job shows. */
+  service?: PhotoService;
   before: ImageSource;
   after: ImageSource;
   /** What the photo actually shows - used as alt text. */
@@ -63,24 +65,14 @@ export type BeforeAfterPair = {
 };
 
 /**
- * Hero treatment.
- *
- * `typographic` is the launch-week v0: a bold type block, no imagery. The
- * draggable before/after slider is the signature element (SPEC §2) and the
- * single most persuasive thing this trade has, but it is worth nothing with a
- * stock photo in it. Flip to `slider` and fill `heroPair` the week we have a
- * real before/after of our own.
- */
-/**
  * Fills every photo slot with a stamped placeholder so the layout can be
  * judged before real work exists. Generate them with `npm run placeholders`.
- *
- * LAUNCH BLOCKER: set this to false before the site goes live. The
- * placeholders are loud on purpose - each one says NOT A REAL JOB across the
- * bottom - but the rule they stand in for is absolute: only real photos of
- * our own work ever ship (CLAUDE.md, SPEC §2).
+ * Keep false on the live site - only real photos of our own work ship.
  */
 export const USE_PLACEHOLDER_MEDIA = false;
+
+/** Which service a photo pair proves. Slots with no pair show a placeholder. */
+export type PhotoService = "house-wash" | "driveway" | "gutter-clean" | "windows" | "fences" | "gutter-guard";
 
 /**
  * Real jobs, real photos. Sources live in photos-src/ (not committed - they
@@ -100,24 +92,28 @@ const REAL_PAIRS: readonly BeforeAfterPair[] = [
     after: houseWashAfter,
     alt: "House exterior, before and after a soft wash",
     suburb: "Buderim",
+    service: "house-wash",
   },
   {
     before: drivewayBefore,
     after: drivewayAfter,
     alt: "Driveway, before and after a surface clean",
     suburb: "Buderim",
+    service: "driveway",
   },
   {
     before: houseSideBefore,
     after: houseSideAfter,
     alt: "The shaded side of a house, before and after a soft wash",
     suburb: "Buderim",
+    service: "house-wash",
   },
   {
     before: fenceCleanBefore,
     after: fenceCleanAfter,
     alt: "Fence, before and after a clean",
     suburb: "Buderim",
+    service: "fences",
   },
 ];
 
@@ -127,6 +123,7 @@ const PLACEHOLDER_PAIRS: readonly BeforeAfterPair[] = [
     after: "/placeholder/driveway-after.png",
     alt: "Placeholder for a driveway before and after",
     suburb: "Placeholder",
+    service: "driveway",
     placeholder: true,
   },
   {
@@ -134,37 +131,36 @@ const PLACEHOLDER_PAIRS: readonly BeforeAfterPair[] = [
     after: "/placeholder/house-after.png",
     alt: "Placeholder for a house wall before and after",
     suburb: "Placeholder",
+    service: "house-wash",
     placeholder: true,
   },
 ];
 
 const PAIRS = USE_PLACEHOLDER_MEDIA ? PLACEHOLDER_PAIRS : REAL_PAIRS;
 
-/** The driveway pair leads - it is the most persuasive of the three. */
-export const HERO_MODE: "typographic" | "slider" =
-  PAIRS.length > 0 ? "slider" : "typographic";
+/**
+ * "Recent work" slots, one per service, in the order the site sells them.
+ * Add a real pair to REAL_PAIRS with its `service` and it replaces the
+ * placeholder for that slot automatically - no component changes.
+ */
+export const PHOTO_SLOTS: readonly { service: PhotoService; label: string }[] = [
+  { service: "house-wash", label: "House soft wash" },
+  { service: "driveway", label: "Driveway and paths" },
+  { service: "gutter-clean", label: "Gutter clean" },
+  { service: "windows", label: "Exterior windows" },
+  { service: "fences", label: "Fences" },
+  { service: "gutter-guard", label: "Gutter guard" },
+];
 
-export const heroPair: BeforeAfterPair | null = PAIRS[0] ?? null;
-
-/** Proof strip (SPEC §4.6). Section hides itself while both are empty. */
-export const proofPairs: readonly BeforeAfterPair[] = PAIRS.slice(1);
+export function pairsFor(service: PhotoService): BeforeAfterPair[] {
+  return PAIRS.filter((p) => p.service === service);
+}
 
 export type Review = {
   quote: string;
   author: string;
   suburb: string;
-  /** Out of 5. Only ever a real rating from a real Google review. */
-  rating: number;
 };
 
+/** Real reviews only, pasted in as they land. Empty = placeholder shows. */
 export const reviews: readonly Review[] = [];
-
-/**
- * Storm season drives gutter enquiries (CLAUDE.md). September to November
- * inclusive, so the waitlist prompt sharpens up for those three months.
- */
-export const STORM_SEASON_MONTHS = [9, 10, 11] as const;
-
-export function isStormSeason(month: number): boolean {
-  return (STORM_SEASON_MONTHS as readonly number[]).includes(month);
-}

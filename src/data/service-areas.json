@@ -1,0 +1,62 @@
+{
+  "region": "Sunshine Coast, QLD",
+  "base": "Aroona",
+  "areas": [
+    {
+      "suburb": "Buderim",
+      "postcode": "4556",
+      "priority": 1,
+      "slug": "buderim",
+      "blurb": "Buderim's leafy streets and damp mountain air mean mould on walls and gutters that fill fast. We clean the whole outside of your home in one morning, with soft washing that's gentle on paint and render."
+    },
+    {
+      "suburb": "Little Mountain",
+      "postcode": "4551",
+      "priority": 2,
+      "slug": "little-mountain",
+      "blurb": "Busy week? We wash the house, clean the driveway, clear the gutters and do the windows in one visit, so your weekend stays yours."
+    },
+    {
+      "suburb": "Aroona",
+      "postcode": "4551",
+      "priority": 3,
+      "slug": "aroona",
+      "blurb": "We're based in Aroona, so your street is minutes away. Book a day we're already nearby and skip the call-out fee."
+    },
+    {
+      "suburb": "Mountain Creek",
+      "postcode": "4557",
+      "priority": 4,
+      "slug": "mountain-creek",
+      "blurb": "From the lake to the hills, Mountain Creek homes pick up mould, dust and leaves. One fixed price gets the whole exterior back to clean."
+    },
+    {
+      "suburb": "Currimundi",
+      "postcode": "4551",
+      "priority": 5,
+      "slug": "currimundi",
+      "blurb": "Close to the beach means salt and mould on walls and windows. Our soft wash lifts it without damaging paint."
+    },
+    {
+      "suburb": "Pelican Waters",
+      "postcode": "4551",
+      "priority": 6,
+      "slug": "pelican-waters",
+      "blurb": "Salt air and canal-side humidity are hard on paint and glass. Keep your home looking its best with a full exterior clean, or add gutter guard with the Full Exterior package."
+    },
+    {
+      "suburb": "Kuluin",
+      "postcode": "4558",
+      "priority": 7,
+      "slug": "kuluin",
+      "blurb": "House wash, driveway, gutters and windows in one morning, at one fixed price."
+    },
+    {
+      "suburb": "Forest Glen",
+      "postcode": "4556",
+      "priority": 8,
+      "slug": "forest-glen",
+      "blurb": "Bigger blocks and more trees mean fuller gutters. Ask about gutter guard with your exterior clean."
+    }
+  ]
+}

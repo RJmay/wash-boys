@@ -2,14 +2,17 @@
  * Single source of truth for business facts used in copy, schema.org markup
  * and transactional email.
  *
- * Phone, ABN and domain all live here and nowhere else, so there is exactly
- * one place to change them. All three are now real; the flyer preflight
- * checks them before it will write print artwork.
+ * Phone, ABN, email and domain all live here and nowhere else. They are real;
+ * the flyer preflight checks them before it will write print artwork. Bank
+ * details for the deposit are still placeholders - see src/data/placeholders.ts
+ * for the full list of what is still to fill.
  */
+
+import { PLACEHOLDERS } from "./placeholders";
 
 export const BUSINESS = {
   name: "Wash Boys",
-  tagline: "Pressure washing, Caloundra to Buderim",
+  tagline: "House wash, driveway, gutters and windows. Sunshine Coast.",
 
   phone: {
     /** Human-readable, as shown on the page and the flyer. */
@@ -27,36 +30,35 @@ export const BUSINESS = {
   base: {
     suburb: "Aroona",
     city: "Caloundra",
+    region: "Sunshine Coast",
     state: "QLD",
     country: "AU",
   },
 
   /**
-   * Trust claims. Every one of these must be true before flyers drop —
-   * public liability cover active, ABN registered (SPEC §9).
+   * Trust claims - only things that are true today (docs/brief/business-brief.md).
+   * No insurance, licence, years or review claims until they are real: those
+   * sit in PLACEHOLDERS and render as visible placeholders.
    */
   trust: {
-    insured: "Fully insured (public liability)",
-    local: "Local, owner-operated crew",
-    guarantee: "Not happy? We come back and re-wash it free.",
+    team: "Local, two-person team, the same two people every job",
+    softWash: "Soft wash on painted surfaces, never blasted",
+    drains: "Wash water kept out of the street drains",
   },
 
-  /** Tue–Sat AM/PM half-days, plus optional Sunday PM overflow after 11am. */
-  hours: {
-    days: "Tuesday to Saturday",
-    note: "Sunday afternoons by arrangement — petrol washers are loud, so we never start a Sunday before 11am.",
+  /**
+   * Deposit by bank transfer. The booking reference goes in the transfer
+   * description so the owner can match it on the statement.
+   */
+  bank: {
+    accountName: PLACEHOLDERS.bankAccountName,
+    bsb: PLACEHOLDERS.bankBsb,
+    accountNumber: PLACEHOLDERS.bankAccountNumber,
   },
 
-  /** Applied automatically in the booking flow at 2+ services (SPEC §5). */
-  bundleDiscountPct: 15,
-
-  /** Said out loud on every page that shows a price (CLAUDE.md). */
-  pricingDisclaimer:
-    "Final price confirmed on site before we start. Pay on the day.",
+  /** Said on every page that shows a price. */
+  gstNote: "Prices include GST.",
 } as const;
-
-/** Bundle rule: 15% off once two or more bookable services are selected. */
-export const BUNDLE_MIN_SERVICES = 2;
 
 /** True while a value is still a `[PLACEHOLDER]` from the launch checklist. */
 export function isPlaceholder(value: string): boolean {

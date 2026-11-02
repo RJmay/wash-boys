@@ -1,107 +1,129 @@
 import { BUSINESS } from "@/data/business";
-import { SUBURBS } from "@/data/suburbs";
-import type { Service } from "@/data/services";
-import { serviceRange } from "@/data/services";
+import { isFilled } from "@/data/placeholders";
+import {
+  BUNDLES,
+  formatPrice,
+  GUTTER_GUARD,
+  GUTTER_GUARD_FROM,
+  itemName,
+} from "@/data/pricing";
+import { SERVICE_PAGES, servicePrice, type ServicePage } from "@/data/services";
+import { SUBURBS, type Suburb } from "@/data/suburbs";
 
 /**
- * schema.org markup (SPEC §9).
+ * schema.org markup.
  *
- * Everything here has to be true. Structured data is read by machines that
- * will happily surface a price or an area we do not honour, and a
- * LocalBusiness claiming a suburb we do not service is worse than no markup at
- * all.
+ * Everything here has to be true. No ratings, reviews, opening hours or
+ * accreditations: we have none to state yet. Prices come from pricing.json,
+ * GST included.
  */
 
 const SITE = `https://${BUSINESS.domain}`;
+const BUSINESS_ID = `${SITE}/#business`;
+
+function place(suburb: Suburb) {
+  return {
+    "@type": "Place",
+    name: `${suburb.name} QLD ${suburb.postcode}`,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: suburb.name,
+      postalCode: suburb.postcode,
+      addressRegion: BUSINESS.base.state,
+      addressCountry: BUSINESS.base.country,
+    },
+  };
+}
+
+function offer(name: string, price: number, url: string, minPrice = false) {
+  return {
+    "@type": "Offer",
+    name,
+    url: `${SITE}${url}`,
+    priceCurrency: "AUD",
+    priceSpecification: {
+      "@type": "PriceSpecification",
+      priceCurrency: "AUD",
+      valueAddedTaxIncluded: true,
+      ...(minPrice ? { minPrice: price } : { price }),
+    },
+  };
+}
 
 /** The business itself. A service-area business, not a shopfront. */
 export function localBusiness() {
   return {
     "@context": "https://schema.org",
     "@type": "HomeAndConstructionBusiness",
-    "@id": `${SITE}/#business`,
+    "@id": BUSINESS_ID,
     name: BUSINESS.name,
     description:
-      "Driveway, house, patio and fence cleaning across the Caloundra to Buderim corridor on the Sunshine Coast.",
+      "House soft washing, driveway pressure cleaning, gutter cleaning, exterior windows and gutter guard installation on the Sunshine Coast.",
     url: SITE,
     telephone: BUSINESS.phone.tel,
     email: BUSINESS.email,
-    // No street address: we come to you, and publishing a home address as a
-    // shopfront would be inviting people to turn up at it.
+    taxID: BUSINESS.abn,
+    // No street address: we come to you.
     address: {
       "@type": "PostalAddress",
       addressLocality: BUSINESS.base.suburb,
       addressRegion: BUSINESS.base.state,
       addressCountry: BUSINESS.base.country,
     },
-    areaServed: SUBURBS.map((suburb) => ({
-      "@type": "City",
-      name: suburb.name,
-      addressRegion: "QLD",
-      postalCode: suburb.postcode,
-    })),
-    priceRange: "$$",
+    areaServed: SUBURBS.map(place),
     currenciesAccepted: "AUD",
-    openingHoursSpecification: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: [
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ],
-        opens: "07:00",
-        closes: "17:00",
-      },
-    ],
+    priceRange: `${formatPrice(Math.min(...SERVICE_PAGES.map((p) => servicePrice(p).price)))}–${formatPrice(Math.max(...GUTTER_GUARD.packages.map((p) => p.price)))}`,
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Exterior home services",
+      itemListElement: [
+        ...BUNDLES.filter((b) => b.id !== "annual-refresh").map((b) =>
+          offer(`${b.name}: ${b.includes.map(itemName).join(", ")}`, b.price, "/pricing"),
+        ),
+        ...SERVICE_PAGES.map((p) => {
+          const { name, price, from } = servicePrice(p);
+          return offer(name, price, `/services/${p.slug}`, from);
+        }),
+        offer("Gutter guard supply and installation", GUTTER_GUARD_FROM, "/gutter-guard", true),
+      ],
+    },
   };
 }
 
-/**
- * A single service. Only ever emitted for services we actually sell - the
- * coming-soon gutter page gets no offer markup, because there is nothing to
- * offer yet.
- */
-export function serviceSchema(service: Service, suburbName?: string) {
-  const range = serviceRange(service);
-  const priced = service.pricing.kind !== "unpriced";
+/** One service, optionally scoped to a suburb page. */
+export function serviceSchema(
+  service: ServicePage | "gutter-guard",
+  suburb?: Suburb,
+) {
+  const isGuard = service === "gutter-guard";
+  const name = isGuard ? "Gutter guard supply and installation" : servicePrice(service).name;
+  const price = isGuard ? GUTTER_GUARD_FROM : servicePrice(service).price;
+  const isFrom = isGuard || servicePrice(service).from;
+  const url = isGuard ? "/gutter-guard" : `/services/${service.slug}`;
 
   return {
     "@context": "https://schema.org",
     "@type": "Service",
-    name: suburbName ? `${service.name} in ${suburbName}` : service.name,
-    description: service.description,
-    provider: { "@id": `${SITE}/#business` },
-    areaServed: suburbName
-      ? { "@type": "City", name: suburbName, addressRegion: "QLD" }
-      : SUBURBS.map((s) => ({ "@type": "City", name: s.name })),
-    ...(priced && {
-      offers: {
-        "@type": "Offer",
-        priceCurrency: "AUD",
-        priceSpecification: {
-          "@type": "PriceSpecification",
-          minPrice: range.low,
-          maxPrice: range.high,
-          priceCurrency: "AUD",
-          valueAddedTaxIncluded: true,
-        },
-      },
-    }),
+    name: suburb ? `${name} in ${suburb.name}` : name,
+    serviceType: isGuard ? "Gutter guard installation" : service.heading,
+    provider: { "@id": BUSINESS_ID },
+    areaServed: suburb ? place(suburb) : SUBURBS.map(place),
+    offers: offer(name, price, url, isFrom),
   };
 }
 
-export function faqSchema(items: { q: string; a: string }[]) {
+/** FAQ markup. Placeholder answers are left out - they are not answers yet. */
+export function faqSchema(items: readonly { q: string; a: string }[]) {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: items.map((item) => ({
-      "@type": "Question",
-      name: item.q,
-      acceptedAnswer: { "@type": "Answer", text: item.a },
-    })),
+    mainEntity: items
+      .filter((item) => isFilled(item.a))
+      .map((item) => ({
+        "@type": "Question",
+        name: item.q,
+        acceptedAnswer: { "@type": "Answer", text: item.a },
+      })),
   };
 }
 
@@ -118,12 +140,12 @@ export function breadcrumbs(trail: { name: string; path: string }[]) {
   };
 }
 
-/** Renders a JSON-LD block. Next dedupes identical script tags. */
+/** Renders a JSON-LD block. */
 export function JsonLd({ data }: { data: unknown }) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }}
     />
   );
 }

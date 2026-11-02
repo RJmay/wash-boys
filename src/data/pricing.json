@@ -1,0 +1,121 @@
+{
+  "currency": "AUD",
+  "gstIncluded": true,
+  "basis": "single-storey home",
+  "deposits": {
+    "cleaning": 100,
+    "gutterGuard": 300
+  },
+  "bundles": [
+    {
+      "id": "exterior-refresh",
+      "name": "Exterior Refresh",
+      "price": 790,
+      "separatePrice": 1070,
+      "saving": 280,
+      "includes": [
+        "house-wash",
+        "driveway",
+        "gutter-clean",
+        "windows"
+      ],
+      "headline": true
+    },
+    {
+      "id": "full-exterior",
+      "name": "Full Exterior",
+      "price": 2990,
+      "separatePrice": 3370,
+      "saving": 380,
+      "includes": [
+        "gutter-guard-medium",
+        "house-wash",
+        "driveway",
+        "windows"
+      ]
+    },
+    {
+      "id": "annual-refresh",
+      "name": "Annual Refresh",
+      "price": 750,
+      "billing": "yearly, each October",
+      "includes": [
+        "house-wash",
+        "driveway",
+        "gutter-clean",
+        "windows"
+      ],
+      "note": "Offered to existing customers after their first job"
+    }
+  ],
+  "services": [
+    {
+      "id": "house-wash",
+      "name": "House soft wash",
+      "price": 450,
+      "description": "Walls, eaves and frames, low-pressure soft wash"
+    },
+    {
+      "id": "driveway",
+      "name": "Driveway and paths",
+      "price": 250,
+      "includedArea_m2": 60,
+      "extraPerM2": 4,
+      "description": "Concrete or pavers, rotary surface cleaner"
+    },
+    {
+      "id": "gutter-clean",
+      "name": "Gutter clean",
+      "price": 190,
+      "description": "Debris bagged and removed, downpipes flushed"
+    },
+    {
+      "id": "windows",
+      "name": "Exterior windows",
+      "price": 180,
+      "description": "Outside glass, frames wiped, screens rinsed"
+    },
+    {
+      "id": "fences",
+      "name": "Fences and retaining walls",
+      "price": 120,
+      "from": true,
+      "pricedBy": "per metre, per side",
+      "addOn": true,
+      "description": "Colorbond, timber and besser block, priced per metre, per side"
+    }
+  ],
+  "gutterGuard": {
+    "includesGutterClean": true,
+    "packages": [
+      {
+        "id": "gutter-guard-small",
+        "name": "Small",
+        "maxMetres": 40,
+        "price": 1690
+      },
+      {
+        "id": "gutter-guard-medium",
+        "name": "Medium",
+        "minMetres": 40,
+        "maxMetres": 70,
+        "price": 2490
+      },
+      {
+        "id": "gutter-guard-large",
+        "name": "Large",
+        "minMetres": 70,
+        "maxMetres": 100,
+        "price": 3290
+      }
+    ],
+    "valleyEach": 90,
+    "overMaxNote": "Over 100 m: quoted by phone"
+  },
+  "surcharges": {
+    "doubleStorey": {
+      "washingAndWindows": 200,
+      "gutterGuard": 400
+    }
+  }
+}

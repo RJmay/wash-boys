@@ -1,19 +1,13 @@
 /**
  * Date helpers pinned to Queensland time.
  *
- * The server runs in UTC on Vercel. A booking made at 8am Brisbane is still
+ * The server runs in UTC on Cloudflare. A booking made at 8am Brisbane is still
  * "yesterday" in UTC, so anything comparing a booking date to "today" has to
  * go through here or it will reject valid same-day bookings for 10 hours a
  * day. Queensland has no daylight saving, so a fixed zone is safe.
  */
 
-/** Half-day slots. Tue-Sat AM/PM, plus optional Sun PM overflow. */
-export type Slot = "am" | "pm";
-
 export const TIMEZONE = "Australia/Brisbane";
-
-/** How far ahead the date picker runs (SPEC §5 step 3). */
-export const BOOKING_WINDOW_DAYS = 14;
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -60,16 +54,6 @@ export function dayOfWeek(iso: string): number {
   return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
 }
 
-/**
- * Working days: Tuesday to Saturday, plus Sunday PM as optional overflow.
- * Monday is off, and a Sunday morning never is - noise (CLAUDE.md).
- */
-export function isWorkingSlot(iso: string, slot: Slot): boolean {
-  const dow = dayOfWeek(iso);
-  if (dow >= 2 && dow <= 6) return true;
-  return dow === 0 && slot === "pm";
-}
-
 /** "Sat 23 Aug" - compact enough for a slot button at 375px. */
 export function formatShortDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
@@ -91,16 +75,3 @@ export function formatLongDate(iso: string): string {
     month: "long",
   }).format(new Date(Date.UTC(y, m - 1, d)));
 }
-
-/**
- * Half-days only. We deliberately do not publish arrival times - the booking
- * confirmation promises a text with the exact window instead (SPEC §5), and
- * promising "7am" on a page we cannot always hit is a bad first impression.
- */
-export const SLOT_LABELS = {
-  am: "Morning",
-  pm: "Afternoon",
-} as const;
-
-/** Sunday overflow starts late on purpose - petrol washers are loud. */
-export const SUNDAY_PM_NOTE = "Sunday jobs start after 11am.";

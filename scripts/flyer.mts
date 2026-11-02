@@ -32,12 +32,7 @@ import { pathToFileURL } from "node:url";
 import { chromium, type Browser } from "playwright-core";
 
 import { BUSINESS, isPlaceholder } from "../src/data/business";
-import {
-  BOOKABLE_SERVICES,
-  isBanded,
-  serviceFromPrice,
-} from "../src/data/services";
-import { formatPrice } from "../src/lib/pricing";
+import { SERVICES_PRICED, servicePriceLabel } from "../src/data/pricing";
 
 
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -50,22 +45,17 @@ const BOARD = { w: 105, h: 216 };
 /** Extra room for trim marks when --crop-marks is used. */
 const MARK_MARGIN = 6;
 
+/**
+ * Fixed prices from pricing.json since the Nov 2026 relaunch. The DL template
+ * itself still carries the old layout and copy - it needs a redesign around
+ * the Exterior Refresh before the next print run.
+ */
 function priceRows() {
-  return BOOKABLE_SERVICES.map((service) => {
-    let note = "";
-    if (service.slug === "house-washing") note = "single storey";
-    else if (isBanded(service)) {
-      note =
-        service.pricing.unit === "m2"
-          ? "priced on the area"
-          : "by the metre, per side";
-    }
-    return {
-      name: service.name,
-      note,
-      amount: `from ${formatPrice(serviceFromPrice(service))}`,
-    };
-  });
+  return SERVICES_PRICED.map((service) => ({
+    name: service.name,
+    note: service.pricedBy ?? "single storey",
+    amount: servicePriceLabel(service),
+  }));
 }
 
 function buildConfig() {

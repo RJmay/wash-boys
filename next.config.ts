@@ -18,6 +18,31 @@ const nextConfig: NextConfig = {
    * allow the loopback address explicitly.
    */
   allowedDevOrigins: ["127.0.0.1"],
+
+  experimental: {
+    serverActions: {
+      // The booking form uploads up to four house photos. The browser shrinks
+      // them to ~300KB first, but a phone that cannot (old Safari, HEIC) sends
+      // originals, capped at 6MB each by the action. Room for four of those.
+      bodySizeLimit: "26mb",
+    },
+  },
+
+  /*
+   * Pages retired in the Nov 2026 relaunch. Permanent, so search engines move
+   * their ranking across. Query strings (?src=) pass through untouched, so a
+   * printed QR pointing at an old path still attributes.
+   */
+  redirects() {
+    return [
+      { source: "/contact", destination: "/", permanent: true },
+      { source: "/reviews", destination: "/", permanent: true },
+      { source: "/quote", destination: "/book", permanent: true },
+      { source: "/bundles", destination: "/pricing", permanent: true },
+      { source: "/services/patio-cleaning", destination: "/services", permanent: true },
+      { source: "/services/gutter-guard", destination: "/gutter-guard", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

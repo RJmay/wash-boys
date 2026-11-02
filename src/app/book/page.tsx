@@ -1,72 +1,76 @@
 import type { Metadata } from "next";
 
-import { BookingFlow } from "@/components/book/booking-flow";
-import { Footer, StickyBar } from "@/components/site/chrome";
+import { BookingForm } from "@/components/book/booking-form";
+import { PageShell } from "@/components/site/chrome";
 import { Section } from "@/components/site/ui";
-import { BUSINESS } from "@/data/business";
-import { isServiceSlug, type ServiceSlug } from "@/data/services";
+import {
+  GUTTER_GUARD_SIZES,
+  PACKAGE_CHOICES,
+  SERVICE_IDS,
+  type GutterGuardSize,
+  type PackageChoice,
+  type ServiceId,
+} from "@/data/pricing";
 import { isServicedSuburb } from "@/data/suburbs";
-import { getAvailability } from "@/lib/actions/availability";
+import { allUpcomingDays } from "@/lib/street-days";
 
 export const metadata: Metadata = {
-  title: `Book a clean — ${BUSINESS.name}`,
+  title: "Book Your Day",
   description:
-    "Book a driveway, house wash, patio or fence clean across the Caloundra to Buderim corridor. Two minutes, no account, no deposit.",
-  // Nothing to gain from indexing a form, and it would compete with the
-  // landing page for the same terms.
+    "Book your exterior clean or gutter guard: pick a day we're in your suburb and hold it with a deposit.",
+  alternates: { canonical: "/book" },
+  // Nothing to gain from indexing a form.
   robots: { index: false, follow: true },
 };
 
-/** Availability is per-request: a slot booked a minute ago must show as gone. */
-export const dynamic = "force-dynamic";
+function first(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
 
 /**
- * Booking page (SPEC §5).
- *
- * Prefills from the query string so "Add to booking" on a service card and
- * "Book a clean in Buderim" on the map both land with the work already
- * started. `?services=driveway-cleaning,house-washing&suburb=buderim`
+ * Book page. Prefills from the query string so every "Book" link lands with
+ * the choice already made:
+ *   /book?package=exterior-refresh
+ *   /book?package=single&services=gutter-clean
+ *   /book?package=gutter-guard
+ *   /book?suburb=buderim
+ * `?src=` is read by the form itself (and the attribution cookie).
  */
-export default async function BookPage({
-  searchParams,
-}: PageProps<"/book">) {
+export default async function BookPage({ searchParams }: PageProps<"/book">) {
   const params = await searchParams;
 
-  const rawServices = params.services;
-  const requested = (Array.isArray(rawServices) ? rawServices : [rawServices])
-    .filter((v): v is string => typeof v === "string")
-    .flatMap((v) => v.split(","))
+  const rawPackage = first(params.package);
+  const initialPackage = (PACKAGE_CHOICES as readonly string[]).includes(rawPackage ?? "")
+    ? (rawPackage as PackageChoice)
+    : "exterior-refresh";
+
+  const initialServices = (first(params.services) ?? "")
+    .split(",")
     .map((v) => v.trim())
-    // Only bookable slugs survive - a hand-typed ?services=gutter-cleaning
-    // must not preselect something we do not sell.
-    .filter((v): v is ServiceSlug => isServiceSlug(v) && v !== "gutter-cleaning");
+    .filter((v): v is ServiceId => (SERVICE_IDS as readonly string[]).includes(v));
 
-  const rawSuburb = Array.isArray(params.suburb)
-    ? params.suburb[0]
-    : params.suburb;
-  const suburb =
-    typeof rawSuburb === "string" && isServicedSuburb(rawSuburb)
-      ? rawSuburb
-      : "";
+  const rawSize = first(params.size);
+  const initialSize = (GUTTER_GUARD_SIZES as readonly string[]).includes(rawSize ?? "")
+    ? (rawSize as GutterGuardSize)
+    : undefined;
 
-  const slots = await getAvailability();
+  const rawSuburb = first(params.suburb);
+  const initialSuburb = rawSuburb && isServicedSuburb(rawSuburb) ? rawSuburb : "";
 
   return (
-    <>
-      <StickyBar />
-      <main>
-        <Section labelledBy="book-heading">
-          <h1 id="book-heading" className="sr-only">
-            Book a clean
-          </h1>
-          <BookingFlow
-            slots={slots}
-            initialServices={[...new Set(requested)]}
-            initialSuburb={suburb}
-          />
-        </Section>
-      </main>
-      <Footer />
-    </>
+    <PageShell>
+      <Section labelledBy="book-heading">
+        <h1 id="book-heading" className="display-caps text-hero text-harbour">
+          Book your day
+        </h1>
+        <BookingForm
+          streetDays={allUpcomingDays()}
+          initialPackage={initialPackage}
+          initialServices={initialServices}
+          initialSize={initialSize}
+          initialSuburb={initialSuburb}
+        />
+      </Section>
+    </PageShell>
   );
 }

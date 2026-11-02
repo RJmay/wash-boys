@@ -1,14 +1,15 @@
 import { z } from "zod";
 
 import {
-  getBand,
-  getService,
-  isBanded,
-  SERVICES,
-  type ServiceSlug,
-} from "@/data/services";
+  ADD_ON_IDS,
+  GUTTER_GUARD_SIZES,
+  includesGutterGuard,
+  PACKAGE_CHOICES,
+  SERVICE_IDS,
+} from "@/data/pricing";
 import { isServicedSuburb } from "@/data/suburbs";
-import { BOOKING_WINDOW_DAYS, daysBetween, isISODate, todayISO } from "./dates";
+import { daysBetween, isISODate, todayISO } from "./dates";
+import { OPEN_PICKER_DAYS, upcomingDays } from "./street-days";
 
 /**
  * Every public input crosses one of these before it reaches the database
@@ -38,6 +39,13 @@ export const auMobile = z
     return `+61${digits}`;
   });
 
+/** Required email - the deposit details and confirmation go to it. */
+export const requiredEmail = z
+  .string()
+  .trim()
+  .min(1, "Email is required")
+  .pipe(z.email({ message: "That email does not look right" }));
+
 /** Optional email: empty string and whitespace both mean "not given". */
 export const optionalEmail = z
   .string()
@@ -51,13 +59,19 @@ const personName = z
   .min(2, "Please enter your name")
   .max(80, "That name is too long");
 
-/** QR batch code from the ?c= param or the attribution cookie, e.g. "PW1". */
+/**
+ * Flyer street-group code from `?src=` or the attribution cookie, e.g.
+ * "AROONA-3". An unparseable code is dropped rather than failing the form -
+ * attribution must never cost a booking.
+ */
 export const sourceCode = z
   .string()
   .trim()
   .toUpperCase()
-  .regex(/^[A-Z0-9]{1,16}$/, "Invalid code")
-  .optional();
+  .optional()
+  .transform((value) =>
+    value && /^[A-Z0-9_-]{1,32}$/.test(value) ? value : undefined,
+  );
 
 const suburbSlug = z
   .string()
@@ -69,98 +83,97 @@ const photoUrls = z
   .max(6, "Six photos is plenty")
   .optional();
 
-const utm = z.record(z.string(), z.string()).optional();
-
-/** Booking date: a real date, inside the window, never in the past. */
+/** Booking date: a real date, from tomorrow, inside the open-picker window. */
 const preferredDate = z
   .string()
-  .refine(isISODate, { message: "Pick a date" })
-  .refine((iso) => daysBetween(todayISO(), iso) >= 0, {
-    message: "That date has already passed",
+  .refine(isISODate, { message: "Pick a day" })
+  .refine((iso) => daysBetween(todayISO(), iso) >= 1, {
+    message: "Pick a day from tomorrow onwards",
   })
-  .refine((iso) => daysBetween(todayISO(), iso) <= BOOKING_WINDOW_DAYS, {
-    message: `We only take bookings ${BOOKING_WINDOW_DAYS} days ahead - call us for anything further out`,
+  .refine((iso) => daysBetween(todayISO(), iso) <= OPEN_PICKER_DAYS, {
+    message: `We only take bookings ${OPEN_PICKER_DAYS} days ahead - call us for anything further out`,
   });
 
-export const slotSchema = z.enum(["am", "pm"]);
-
-const BOOKABLE_SLUGS = SERVICES.filter((s) => s.active && s.bookable).map(
-  (s) => s.slug,
-) as [ServiceSlug, ...ServiceSlug[]];
-
-/**
- * Only bookable services get through. Gutter cleaning is excluded at the type
- * level, so no hand-crafted request can book a service we do not offer.
- */
-const serviceSlugs = z
-  .array(z.enum(BOOKABLE_SLUGS))
-  .min(1, "Pick at least one service")
-  .max(BOOKABLE_SLUGS.length)
-  .refine((slugs) => new Set(slugs).size === slugs.length, {
-    message: "Duplicate service",
-  });
+const optionalText = (max: number, message: string) =>
+  z
+    .string()
+    .trim()
+    .max(max, message)
+    .optional()
+    .transform((value) => (value ? value : undefined));
 
 // ── Public submissions ────────────────────────────────────────────────────
 
 /**
- * Size band per service, keyed by slug: `{ "patio-cleaning": { band: "medium" } }`.
- * Patios are priced on area and fences on length, so the band is what turns a
- * provisional range into a real one.
+ * POST from the Book page (docs/brief/site-content.md).
+ *
+ * Price and deposit are not accepted from the browser at all: the server
+ * recomputes both from pricing.json.
  */
-export const serviceOptionsSchema = z
-  .record(z.string(), z.object({ band: z.string().trim().min(1) }))
-  .optional();
-
-/** POST from the booking flow (SPEC §5). */
 export const bookingSchema = z
   .object({
     name: personName,
     phone: auMobile,
-    email: optionalEmail,
+    email: requiredEmail,
     address: z
       .string()
       .trim()
       .min(5, "Please enter the street address")
       .max(200, "That address is too long"),
     suburb: suburbSlug,
-    service_slugs: serviceSlugs,
-    service_options: serviceOptionsSchema,
+    storeys: z.enum(["single", "double"], { message: "Single or double storey?" }),
+    package: z.enum(PACKAGE_CHOICES, { message: "Pick what you would like done" }),
+    gutter_guard_size: z.enum(GUTTER_GUARD_SIZES).optional(),
+    services: z
+      .array(z.enum(SERVICE_IDS))
+      .max(SERVICE_IDS.length)
+      .default([])
+      .transform((ids) => [...new Set(ids)]),
+    /** Add-ons (fences) on top of a bundle or gutter guard. */
+    addons: z
+      .array(z.string())
+      .default([])
+      .transform((ids) => [...new Set(ids)])
+      .pipe(z.array(z.enum(SERVICE_IDS)))
+      .refine((ids) => ids.every((id) => ADD_ON_IDS.includes(id)), {
+        message: "That can't be added on",
+      }),
+    roof_type: z.enum(["tile", "metal", "not-sure"]).optional(),
     preferred_date: preferredDate,
-    slot: slotSchema,
-    notes: z
-      .string()
-      .trim()
-      .max(500, "Please keep notes under 500 characters")
-      .optional(),
-    photo_urls: photoUrls,
-    source_code: sourceCode,
-    utm,
+    notes: optionalText(500, "Please keep notes under 500 characters"),
+    source: sourceCode,
+    page: optionalText(200, "Page too long"),
   })
-  /**
-   * Services priced on size must arrive with a valid band, or the estimate
-   * saved against the booking would be a guess the customer never agreed to.
-   */
   .superRefine((value, ctx) => {
-    for (const slug of value.service_slugs) {
-      const service = getService(slug);
-      if (!service || !isBanded(service)) continue;
-
-      const chosen = value.service_options?.[slug]?.band;
-      if (!chosen) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["service_options", slug],
-          message: `Pick a size for ${service.shortName.toLowerCase()}`,
-        });
-        continue;
-      }
-      if (!getBand(service, chosen)) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["service_options", slug],
-          message: "That size is not one of the options",
-        });
-      }
+    if (value.package === "gutter-guard" && !value.gutter_guard_size) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["gutter_guard_size"],
+        message: "Pick a gutter guard size, or 'not sure'",
+      });
+    }
+    if (value.package === "single" && value.services.length === 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["services"],
+        message: "Tick at least one service",
+      });
+    }
+    if (includesGutterGuard(value) && !value.roof_type) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["roof_type"],
+        message: "What is the roof made of? 'Not sure' is fine",
+      });
+    }
+    // A suburb with listed street days only books on those days.
+    const days = upcomingDays(value.suburb);
+    if (days.length > 0 && !days.includes(value.preferred_date)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["preferred_date"],
+        message: "Pick one of the days we are in your suburb",
+      });
     }
   });
 
@@ -183,27 +196,13 @@ export const quoteRequestSchema = z.object({
 
 export type QuoteRequestInput = z.infer<typeof quoteRequestSchema>;
 
-/**
- * Gutter waitlist (CLAUDE.md). Never a booking, never priced - this is the
- * only thing a gutter enquiry is allowed to become until the service is live.
- */
-export const waitlistSchema = z.object({
-  service_slug: z.literal("gutter-cleaning").default("gutter-cleaning"),
-  name: personName,
-  phone: auMobile,
-  /** Free text: storm-season demand from just outside the corridor still counts. */
-  suburb: z.string().trim().max(80).optional(),
-  source_code: sourceCode,
-});
-
-export type WaitlistInput = z.infer<typeof waitlistSchema>;
 
 /** Where a lead came from. Drives how the admin leads screen groups them. */
 export const LEAD_KINDS = ["out_of_area", "general"] as const;
 export type LeadKind = (typeof LEAD_KINDS)[number];
 
 /**
- * Out-of-area catch from booking step 2, and any other "call me" capture that
+ * "Other" suburb on the Book page, and any other "call me" capture that
  * is not a booking. Lands in the `leads` table - a real contact record with a
  * status the owner can work through, rather than PII buried in the append-only
  * events log. A `lead_out_of_area` event is still logged alongside it so the
@@ -215,7 +214,7 @@ export const leadSchema = z.object({
   phone: auMobile,
   /** Free text on purpose - the whole point is that it is off our list. */
   suburb: z.string().trim().min(2, "Which suburb?").max(80),
-  message: z.string().trim().max(500).optional(),
+  message: z.string().trim().max(1500).optional(),
   source_code: sourceCode,
 });
 

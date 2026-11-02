@@ -2,6 +2,15 @@
 
 Canonical build spec. CLAUDE.md holds conventions; this holds the what.
 
+> **Nov 2026 relaunch — read this first.** The business relaunched as a
+> two-person exterior home services company: house soft wash, driveway,
+> gutter clean, exterior windows and gutter guard, headlined by the $790
+> Exterior Refresh, with fixed prices and a deposit by bank transfer. The
+> owner's brief is in `docs/brief/` (business-brief.md, site-content.md) and
+> is the source of truth for copy. §3–5 below are rewritten for it; §1–2,
+> §6–11 are the original launch spec, still accurate except where a note
+> says otherwise. Anything here that contradicts `docs/brief/` loses.
+
 ---
 
 ## 1. Goal and funnel math
@@ -54,73 +63,64 @@ scanning is deciding whether to let strangers onto their property.
 
 | Route | Purpose |
 |---|---|
-| `/` | Landing: convert or route to /book |
-| `/book` | Multi-step booking flow |
-| `/go/[code]` | QR redirect + scan logging (302) |
-| `/services/[slug]` | 5 service pages (SEO + detail) |
-| `/areas/[suburb]` | Suburb pages for the corridor (SEO) |
-| `/quote` | Photo quote-request (non-standard jobs) |
-| `/reviews` | Reviews (embed/paste Google reviews as they land) |
-| `/contact` | Phone, email, service-area map |
-| `/admin` | Auth-gated ops (see §8) |
+| `/` | Home: $790 Refresh + Book above the fold on a phone |
+| `/services` | One section per service |
+| `/services/[slug]` | house-washing, driveway-cleaning, gutter-cleaning, window-cleaning, fence-cleaning |
+| `/pricing` | Bundles (large cards), single services, gutter guard, surcharges |
+| `/gutter-guard` | Packages table, warranty placeholder, book CTA |
+| `/areas` | All suburbs; priority suburbs first |
+| `/areas/[suburb]` | One per suburb in `src/data/suburbs.ts` (30) |
+| `/how-it-works` | Four steps |
+| `/faq` | FAQ + FAQPage schema (placeholder answers excluded) |
+| `/book` | Booking form → deposit step → confirmation |
+| `/privacy` | Privacy |
 
-## 4. Landing page (`/`)
+Retired and permanently redirected (next.config.ts): `/contact`, `/reviews`,
+`/quote`, `/services/patio-cleaning`. (`/services/fence-cleaning` is live
+again: fences were re-added 2 Nov 2026, from $120 per metre per side.)
 
-Order of sections, mobile-first:
+## 4. Pages
 
-1. **Sticky mini-bar:** brand mark + `tel:` phone (tap logged) + "Book now".
-2. **Hero:** before/after slider (or typographic v0). Headline states the
-   outcome plainly ("Driveways, houses and gutters — looking new again").
-   Sub-line names the area ("Local crew covering Caloundra to Buderim").
-   One yellow CTA: "Book in 60 seconds". Under it, three trust ticks:
-   Fully insured · Local owner-operated · Re-wash guarantee.
-3. **Services grid:** 4 bookable cards, each with from-price and "Add to
-   booking" (selection pre-fills /book), plus a fifth "Gutter cleaning —
-   coming soon" card that opens the waitlist capture (name, mobile,
-   suburb) — never the booking flow.
-4. **How it works:** 3 steps — Pick services → Pick a time → We confirm by
-   text. Note "Final price confirmed on site before we start. Pay on the
-   day."
-5. **Bundle nudge:** "Book 2+ services, save 15%" (drives the $500–900
-   ticket target). Auto-applies in the booking flow.
-6. **Proof strip:** before/after pairs + Google review cards (real ones
-   only; hide section until they exist).
-7. **Service area:** simple map graphic + suburb chips linking to /areas.
-8. **Seasonal slot (Sept–Nov):** storm-season banner driving the gutter
-   waitlist: "Gutter cleaning is coming — join the list and we'll call you
-   first." No price shown.
-9. **FAQ:** water usage, insurance, surfaces we won't damage, two-storey
-   policy (quote-only for now), payment, weather/rain policy.
-10. **Footer:** ABN, insurance line, phone, email, suburbs, privacy page.
+Copy is `docs/brief/site-content.md`, used as written. Every price renders
+from `src/data/pricing.json` via `src/data/pricing.ts`.
 
-## 5. Booking flow (`/book`)
+- **Above the fold, every home and suburb page, 375px phone:** bundle price
+  and a Book button. The hero is text only; photos sit lower. The sticky bar
+  also carries "Book $790" on every page.
+- **Suburb pages** target "house washing / pressure cleaning / gutter
+  cleaning / gutter guard [suburb]": title, H1, service list headings and
+  Service schema per service. Intro is the owner's blurb from
+  `service-areas.json` where there is one, else the suburb's hook.
+  "We're booking [suburb] streets on:" reads `src/data/street-days.json`
+  and shows `[NEXT DATES]` when empty.
+- **Placeholders:** every claim not yet true (insurance, reviews, warranty,
+  bank details, missing photos) lives in `src/data/placeholders.ts` and
+  renders visibly in a dashed box until filled.
+- **Photos:** real pairs only, tagged by service in `src/data/site.ts`.
+  A service with no pair shows its placeholder slot.
 
-Four steps, progress bar, state preserved, each step < 15 seconds:
+## 5. Booking (`/book`)
 
-1. **Services** — multi-select cards with from-prices; live estimate range
-   totals at the bottom (e.g. "Estimated $270–600 · final confirmed on
-   site"); bundle discount auto-shown at 2+ services. Gutter cleaning
-   appears greyed as "coming soon — join the waitlist" linking to the
-   capture; it is never selectable.
-2. **Address** — street address text + suburb `<select>` limited to the
-   service-area list. Out-of-area suburbs get a soft catch: "We're not in
-   [X] yet — leave your number and we'll call if we head that way" (logged
-   as a lead, not a booking). Address is stored verbatim; geocoding is a
-   later nicety.
-3. **Time** — date picker over the next 14 days + AM/PM half-day slot.
-   Availability from the `availability` table: default capacity 2 bookings
-   per half-day, Tue–Sat, plus optional Sun PM. Fully booked slots shown
-   disabled ("Booked out — scarcity is honest here, don't fake it").
-4. **Details** — name, mobile (required, AU format), email (optional),
-   gate/pet/parking notes, optional photo upload (Supabase Storage).
+One-page form, fields in the brief's order: name, mobile, email (all
+required), street address, suburb (list + "Other"), storeys, what would you
+like (Exterior Refresh / Full Exterior / Gutter guard with size / single
+services, plus an "add fences" option on every non-single choice), roof type (gutter guard only, incl. Full Exterior), preferred
+day (the suburb's street days, else a date picker), photos (optional, up to
+4, shrunk in the browser), notes. Hidden: `source` (from `?src=` or the
+attribution cookie) and `page` (same-origin referrer).
 
-**Confirm screen:** "Booked ✔ — we'll text you to confirm your exact
-arrival window." Show summary + estimate range + what happens next.
-Effects: insert booking; email customer (Resend); email owner with a
-one-tap `tel:` link to the customer; increment funnel events. Status
-starts `new`; owner confirms by text and flips to `confirmed` in admin.
+Server action (`src/lib/actions/booking.ts`) re-prices from pricing.json,
+checks the day is under `capacityPerDay`, saves with a reference
+(`WB-XXXXXX`), uploads photos to `job-photos/bookings/<ref>/`, emails both
+sides, logs `book_done`. Then:
 
-No payment, no account creation, no login for customers — ever, in v1.
+1. **Deposit step:** $100 cleaning / $300 anything with gutter guard, by
+   bank transfer with the reference. `deposit_status` starts `pending`; the
+   owner marks it paid.
+2. **Confirmation:** "You're booked for [date]. We'll text you the day
+   before."
+
+Suburb "Other" saves a lead (no deposit) and shows "we'll call you".
 
 ## 6. Data model (Supabase — canonical schema)
 
@@ -224,6 +224,11 @@ authenticated Supabase session.
 
 ## 7. QR & tracking system
 
+> **Nov 2026:** flyer QRs carry `?src=STREETGROUP` (one code per flyer
+> street group) straight to the site. The code is stamped into the `wb_c`
+> cookie and saved raw on `bookings.source`. `/go/[code]` below was
+> specified but never built; `?c=` is still read as a fallback.
+
 - `/go/[code]`: look up code → log `scan` event → 302 to
   `destination?c=CODE&utm_source=flyer&utm_campaign={campaign}`. Unknown
   code → 302 to `/` with `c=unknown` (never a 404 off a printed flyer).
@@ -268,6 +273,13 @@ Four screens, phone-usable (it will be used from a driveway):
   QR, seed 4 weeks of availability.
 
 ## 10. Phase 2 — instant quote engine (build later, design for now)
+
+> **Nov 2026:** fixed pricing replaced the ranges this section assumes, and
+> the unused website bridge (`src/lib/quote-engine.ts`,
+> `quote-reconcile.ts`) was removed — it is in git history before the
+> relaunch commit. The Python engine in `quote-engine/` is untouched. Any
+> future use is likely sizing (driveway m², gutter metres) rather than
+> pricing.
 
 Existing asset: the FastAPI quoting engine (Railway + Supabase) already
 built for landscaping/pressure washing — Claude-vision satellite analysis,

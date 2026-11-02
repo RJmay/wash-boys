@@ -3,6 +3,8 @@ import { Anton, Figtree } from "next/font/google";
 import "./globals.css";
 
 import { BUSINESS } from "@/data/business";
+import { formatPrice, HEADLINE_BUNDLE } from "@/data/pricing";
+import { JsonLd, localBusiness } from "@/lib/schema";
 
 // Two families, both preloaded and self-hosted by next/font (SPEC §2).
 // Anton: condensed, signage energy — headlines and prices only.
@@ -21,13 +23,15 @@ const figtree = Figtree({
 });
 
 export const metadata: Metadata = {
-  title: `${BUSINESS.name} — Pressure washing, Caloundra to Buderim`,
-  description:
-    "Driveways, house washes, patios and fences across the Caloundra to Buderim corridor. Local, insured, owner-operated. Book online in 60 seconds.",
+  metadataBase: new URL(`https://${BUSINESS.domain}`),
+  // Every page sets its own title; this template brands it.
+  title: {
+    default: `${BUSINESS.name} | Exterior home cleaning, Sunshine Coast`,
+    template: `%s | ${BUSINESS.name}`,
+  },
+  description: `House wash, driveway, gutters and windows in one morning. ${HEADLINE_BUNDLE.name} ${formatPrice(HEADLINE_BUNDLE.price)}, fixed price. Sunshine Coast, based in Aroona.`,
   openGraph: {
-    title: `${BUSINESS.name} — Pressure washing, Caloundra to Buderim`,
-    description:
-      "Driveways, house washes, patios and fences. Local, insured, owner-operated.",
+    siteName: BUSINESS.name,
     locale: "en_AU",
     type: "website",
   },
@@ -40,7 +44,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en-AU"
       className={`${anton.variable} ${figtree.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <JsonLd data={localBusiness()} />
+        {children}
+      </body>
     </html>
   );
 }

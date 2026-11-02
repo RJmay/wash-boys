@@ -1,45 +1,53 @@
-import { Footer, StickyBar } from "@/components/site/chrome";
-import { GutterWaitlist } from "@/components/site/gutter-waitlist";
-import { Hero } from "@/components/site/hero";
+import type { Metadata } from "next";
+
+import { PageShell } from "@/components/site/chrome";
 import {
-  BundleNudge,
-  Faq,
-  HowItWorks,
-  ProofStrip,
-  ServiceArea,
+  BookBand,
+  GutterGuardTeaser,
+  Hero,
+  HowItWorksSteps,
+  PriceTag,
+  RecentWork,
+  RefreshIncludes,
+  TrustStrip,
+  WhereWeWork,
 } from "@/components/site/sections";
-import { ServicesGrid } from "@/components/site/services";
-import { TrackLand } from "@/components/site/tracking";
+import { formatPrice, HEADLINE_BUNDLE } from "@/data/pricing";
+
+export const metadata: Metadata = {
+  title: {
+    absolute: "House Washing, Gutters & Windows, Sunshine Coast | Wash Boys",
+  },
+  description: `House wash, driveway, gutters and windows in one morning: ${formatPrice(HEADLINE_BUNDLE.price)} fixed price for a single-storey home. No call-out fee, no quote visit. Aroona-based, Sunshine Coast.`,
+  alternates: { canonical: "/" },
+};
 
 /**
- * Landing page — SPEC §4, in the order the spec sets out.
+ * Home (docs/brief/site-content.md, "Home").
  *
- * Fully static: no request-time data, so it prerenders at build and serves
- * from the Cloudflare assets binding. The hero is text rather than an image,
- * which keeps the largest paint cheap on a 4G phone at a letterbox.
- *
- * Renders and converts with JavaScript disabled. The FAQ is details/summary,
- * the waitlist is a plain form action, and the coming-soon card is an anchor.
- * JS only enhances: the funnel events and the before/after slider.
+ * Fully static and text-led above the fold: the $790 and the Book button sit
+ * inside the first screen on a 375px phone (brief point 6). Photos come
+ * further down where they cannot push the offer off screen.
  */
 export default function Home() {
   return (
-    <>
-      <StickyBar />
-      <TrackLand />
-
-      <main>
-        <Hero />
-        <ServicesGrid />
-        <HowItWorks />
-        <BundleNudge />
-        <ProofStrip />
-        <ServiceArea />
-        <GutterWaitlist />
-        <Faq />
-      </main>
-
-      <Footer />
-    </>
+    <PageShell>
+      <Hero heading="Your whole exterior, done in one morning.">
+        <p className="text-lg text-white/90">
+          House wash, driveway, gutters and windows.{" "}
+          <PriceTag amount={HEADLINE_BUNDLE.price} />, fixed price, single-storey home.
+        </p>
+        <p className="text-white/80">
+          We already deliver to your street, so there&apos;s no call-out fee and no quote visit.
+        </p>
+      </Hero>
+      <RefreshIncludes />
+      <HowItWorksSteps />
+      <GutterGuardTeaser />
+      <RecentWork />
+      <WhereWeWork />
+      <TrustStrip />
+      <BookBand />
+    </PageShell>
   );
 }

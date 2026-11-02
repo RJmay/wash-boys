@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useId, useState } from "react";
 
 import { BUSINESS } from "@/data/business";
-import { getSuburb, REGIONS, suburbsInRegion } from "@/data/suburbs";
+import { getSuburb, REGIONS, suburbIntro, suburbsInRegion } from "@/data/suburbs";
 import { MAP } from "./corridor-geometry";
 
 /**
@@ -43,7 +43,7 @@ export function CorridorMap() {
             viewBox={`0 0 ${MAP.width} ${MAP.height}`}
             className="h-auto w-full touch-manipulation"
             role="img"
-            aria-label="Map of the service area, from Buderim and Sippy Downs in the north down to Pelican Waters and the Aura estates in the south, with Aroona marked as our base."
+            aria-label="Map of the service area, from Buderim and Sippy Downs in the north down to Pelican Waters and the Aura estates in the south, with Aroona marked as our base. Kuluin and Forest Glen sit just north of the map and are listed below it."
           >
             <rect width={MAP.width} height={MAP.height} className="fill-surface" />
 
@@ -151,13 +151,13 @@ export function CorridorMap() {
               <h3 className="font-display text-xl tracking-wide text-harbour uppercase">
                 {suburb.name}
               </h3>
-              <p className="mt-2 text-sm text-ink-muted">{suburb.hook}</p>
+              <p className="mt-2 text-sm text-ink-muted">{suburbIntro(suburb)}</p>
               <div className="mt-3 flex flex-col gap-1.5">
                 <Link
                   href={{ pathname: "/book", query: { suburb: suburb.slug } }}
                   className="inline-flex items-center gap-1 text-sm font-semibold text-harbour underline underline-offset-4"
                 >
-                  Book a clean in {suburb.name}
+                  Book in {suburb.name}
                   <span aria-hidden="true">→</span>
                 </Link>
                 <Link
@@ -171,7 +171,7 @@ export function CorridorMap() {
           ) : (
             <>
               <h3 className="font-display text-xl tracking-wide text-harbour uppercase">
-                {Object.keys(MAP.points).length} suburbs
+                {Object.keys(MAP.points).length} suburbs on the map
               </h3>
               <p className="mt-2 text-sm text-ink-muted">
                 Pick one to see what dirties houses there. We are based in{" "}
@@ -194,6 +194,20 @@ export function CorridorMap() {
             <ul className="mt-2 flex flex-wrap gap-2">
               {suburbsInRegion(region).map((entry) => {
                 const isSelected = entry.slug === selected;
+                // Suburbs added after the map was generated (Kuluin, Forest
+                // Glen) have no dot, so their chip goes straight to the page.
+                if (!(entry.slug in MAP.points)) {
+                  return (
+                    <li key={entry.slug}>
+                      <Link
+                        href={`/areas/${entry.slug}`}
+                        className="inline-block rounded-full border border-line bg-surface px-3 py-1 text-sm text-ink hover:border-harbour/50"
+                      >
+                        {entry.name}
+                      </Link>
+                    </li>
+                  );
+                }
                 return (
                   <li key={entry.slug}>
                     <button

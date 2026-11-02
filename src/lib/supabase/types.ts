@@ -47,7 +47,7 @@ export type BookingStatus =
   | "cancelled"
   | "no_show";
 
-/** Half-day slots. Tue-Sat AM/PM, plus optional Sun PM overflow. */
+/** Legacy half-day slot. New bookings are all morning ("am"). */
 export type Slot = "am" | "pm";
 
 export type ServiceRow = {
@@ -95,7 +95,7 @@ export type BookingRow = {
   address: string;
   suburb: string;
   service_slugs: string[];
-  /** Size bands for services priced on size: {"patio-cleaning":{"band":"medium"}} */
+  /** Legacy (pre-Nov 2026): size bands for ranged services. */
   service_options: Json | null;
   bundle_discount: boolean | null;
   est_low: number | null;
@@ -106,7 +106,24 @@ export type BookingRow = {
   photo_urls: string[] | null;
   source_code: string | null;
   utm: Json | null;
+  // 0003_exterior_relaunch
+  storeys: "single" | "double" | null;
+  package: "exterior-refresh" | "full-exterior" | "gutter-guard" | "single" | null;
+  gutter_guard_size: "small" | "medium" | "large" | "not-sure" | null;
+  roof_type: "tile" | "metal" | "not-sure" | null;
+  quoted_price: number | null;
+  price_lines: Json | null;
+  deposit_amount: number | null;
+  deposit_status: DepositStatus;
+  deposit_paid_at: string | null;
+  reference: string | null;
+  source: string | null;
+  page: string | null;
+  site_checked_at: string | null;
+  site_notes: string | null;
 };
+
+export type DepositStatus = "pending" | "paid" | "refunded" | "waived";
 
 export type AvailabilityRow = {
   day: string;
@@ -208,6 +225,21 @@ export type Database = {
         | "photo_urls"
         | "source_code"
         | "utm"
+        | "slot"
+        | "storeys"
+        | "package"
+        | "gutter_guard_size"
+        | "roof_type"
+        | "quoted_price"
+        | "price_lines"
+        | "deposit_amount"
+        | "deposit_status"
+        | "deposit_paid_at"
+        | "reference"
+        | "source"
+        | "page"
+        | "site_checked_at"
+        | "site_notes"
       >;
       availability: TableDef<AvailabilityRow, "capacity">;
       jobs: TableDef<

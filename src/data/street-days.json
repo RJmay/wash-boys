@@ -1,0 +1,14 @@
+{
+  "_readme": "Days we are booking each suburb's streets. Add dates as YYYY-MM-DD under the suburb's slug (see service-areas.json / suburbs.ts for slugs). Past dates drop off by themselves. A suburb with no upcoming dates shows the [NEXT DATES] placeholder on its page and a free date picker on the booking form. capacityPerDay is how many bookings one day can take across all suburbs before it shows as booked out.",
+  "capacityPerDay": 2,
+  "days": {
+    "aroona": [],
+    "buderim": [],
+    "little-mountain": [],
+    "mountain-creek": [],
+    "currimundi": [],
+    "pelican-waters": [],
+    "kuluin": [],
+    "forest-glen": []
+  }
+}

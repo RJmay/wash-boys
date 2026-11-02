@@ -1,69 +1,72 @@
-# CLAUDE.md — Wash Boys Pressure Washing
+# CLAUDE.md — Wash Boys Exterior Home Services
 
-> Drop this file in the repo root. It is the project memory for Claude Code.
-> Replace [PHONE], [ABN], [DOMAIN] everywhere before launch. Brand is
-> decided: **Wash Boys** (sibling of the Paper Boy flyer arm; back-pocket
-> alternates if ever needed: Wash Run / Water Run, pairing with Paper Run).
+> Project memory for Claude Code. Brand: **Wash Boys** (sibling of the Paper
+> Boy flyer arm). Phone, ABN, email and domain are real and live in
+> `src/data/business.ts`.
 
 ## What this project is
 
-A booking website for a pressure washing startup on the Sunshine Coast, QLD.
-Nearly all traffic arrives from a QR code on a letterbox flyer, scanned on a
-phone. The site has one job: convert that scan into a booked job in under
-2 minutes. Everything else (SEO pages, admin) supports that loop.
+The booking website for a two-person exterior home services business on the
+Sunshine Coast, QLD, based in Aroona. Almost all traffic arrives from a QR
+code on our own letterbox flyer, scanned on a phone, carrying `?src=` for the
+flyer's street group. The site's job: turn that phone visit into a booked
+day with a deposit.
 
-**The loop that matters right now: Flyer → QR → Website → Booking.**
-An AI instant-quote engine gets integrated later (Phase 2, see SPEC.md §10)
-— do not build speculative quote-model features now, but DO capture the
-training data from day one (jobs table).
+**The loop: Flyer → QR (`?src=`) → Website → Book → Deposit.**
+
+## Source of truth (relaunched Nov 2026)
+
+The owner's brief is in `docs/brief/`:
+- `business-brief.md` — what the business is, positioning, tone, and the
+  rules on what the site must not claim.
+- `site-content.md` — page-by-page copy. Use it as written; tighten only
+  where a layout needs it.
+
+Data:
+- `src/data/pricing.json` — every price, bundle, deposit and surcharge.
+  Render prices from it (via `src/data/pricing.ts`), never type one into a
+  component. GST included; single-storey basis.
+- `src/data/service-areas.json` — priority suburbs in flyer-drop order, with
+  the owner's blurb. `src/data/suburbs.ts` merges it into the full list of
+  30 suburbs (the original 28-suburb corridor plus Kuluin and Forest Glen).
+- `src/data/street-days.json` — the days each suburb's streets are being
+  booked. **The owner edits this by hand.** Empty = `[NEXT DATES]` shows.
+- `src/data/placeholders.ts` — every visible `[PLACEHOLDER]`.
 
 ## Business facts (use these in copy — never invent others)
 
-- Services at launch (cold water only): driveway & concrete cleaning, house
-  soft wash (single storey), patios/paths/pool surrounds, fences & retaining
-  walls. Add-ons: wheelie bins, letterbox.
-- Gutter cleaning is NOT offered yet — never bookable. Capture demand via a
-  gutter waitlist (name, mobile, suburb) on the landing page, booking flow
-  and a coming-soon service page; it switches on once the owner qualifies.
-  **Owner's call:** the hero headline may still name gutters ("Driveways,
-  houses and gutters — looking new again") because the service is imminent.
-  The guardrail: every gutter tap lands on the waitlist — never a booking,
-  never a price — and the headline gets no gutter price or "book now"
-  affordance next to it.
-- From-pricing anchors — these are what the flyer prints, do not move them:
-  driveway from $150, house wash from $250, patios from $99, fences from $120.
-  Bundles target $400–800 tickets. Show ranges, never fixed prices. Final
-  price confirmed on site before work starts. No gutter pricing anywhere
-  until that service is live.
-- **Every service is priced on size**, in four plain-language bands. Driveway
-  and house wash were flat ($150–350 / $250–450) until Aug 2026, when a
-  reconciliation against the Phase-2 quote engine showed a flat range
-  collapses on a big job: a 150m² driveway at the $350 cap returns $35/hr,
-  and Buderim's big blocks and Meridan's acreage edges are both on the wave-1
-  drop list. Typical suburban jobs still land inside the old ranges; only
-  large ones changed.
-- Patios/paths are priced **on area**: from $99, roughly $6–8/m² over a $99
-  minimum call-out, spanning $99–400 across four size bands (the smallest
-  band is minimum-dominated by design — a courtyard still costs a trip).
-- Fences/retaining are priced **per linear metre, per side** — the trade
-  norm: from $120, roughly $8–11/lm over a $120 minimum, spanning $120–450.
-  Fences are normally sold as the **add-on to a house wash** (crew already
-  on site, gear already out); the standalone card stays for fence-only jobs.
-- Rate card and size bands live in `src/data/services.ts` (`RATES`) — tune
-  one number there, not in components. Patio/fence rates are trade-standard
-  starting points and still want the owner's sign-off before flyers print.
-- Service area: the Caloundra–Kawana–Buderim corridor — Sippy Downs and
-  Buderim in the north down to Nirimba and Pelican Waters in the south,
-  coast and inland. Suburb list lives in `src/data/suburbs.ts`.
-- Based in Aroona (Caloundra). Local, owner-operated crew.
-- Working hours for booking slots: Tue–Sat, AM/PM half-day slots. Sunday PM
-  (after 11am) is an optional overflow slot — petrol washers are loud and
-  QLD noise expectations push Sunday starts later.
-- Trust assets: fully insured (public liability), ABN [ABN], real
-  before/after photos only (no stock photos posing as our work), re-wash
-  guarantee: "Not happy? We come back and re-wash it free."
-- Storm season (Sept–Nov) drives gutter enquiries — route every one of
-  them to the gutter waitlist until the service is live.
+- Services: house soft wash, driveway and path pressure cleaning, gutter
+  cleaning, exterior windows, fences and retaining walls, gutter guard
+  supply and installation. Gutter cleaning IS offered and bookable (it used
+  to be waitlist-only; that rule is gone).
+- Fences (owner's call, 2 Nov 2026 — not in the original brief): from $120,
+  priced per metre, per side, confirmed by phone; the Aug 2026 signed-off
+  rate. Offered standalone and as an add-on to any bundle or gutter guard
+  booking. Not part of any bundle price.
+- Not offered yet: roof washing, solar panels, interior windows ("not yet"
+  in the FAQ, nothing more). Patios are no longer a listed service.
+- Headline offer: the Exterior Refresh bundle (see pricing.json). Fixed
+  prices, shown up front — no ranges, no "confirmed on site".
+- Gutter guard is invoiced as its own line and kept under the $3,300 QBCC
+  threshold, so Large is the biggest standard package; bigger is quoted by
+  phone.
+- Deposit by **bank transfer** (no Stripe): $100 cleaning, $300 anything
+  with gutter guard (from pricing.json). The booking reference (`WB-XXXXXX`)
+  goes on the transfer; the owner marks `deposit_status` paid. Bank details
+  are placeholders in `placeholders.ts` until supplied.
+- Two people, the same two every job; most jobs done in one morning. We book
+  whole streets on set days — no call-out fee, no quote visit.
+- **Must not claim until true:** reviews or star ratings, years of
+  experience, "fully insured" or any cover amount, licences or
+  certifications. Public liability will be in place before the first booked
+  job — until the owner confirms it, the insurance line stays a placeholder.
+  No re-wash guarantee (dropped by the owner).
+- Photos: real before/afters of our own work only. The four Buderim pairs
+  in `src/photos/` are ours. Services with no real pair yet (gutters,
+  windows, gutter guard) show a placeholder slot; add pairs in
+  `src/data/site.ts` tagged with their `service` as jobs are done.
+- Tone: plain, friendly, confident, short sentences, about the customer's
+  house. No hype words ("premium", "elite", "unbeatable").
 
 ## Stack (decided — don't relitigate)
 
@@ -73,15 +76,14 @@ training data from day one (jobs table).
 - Supabase: Postgres + Auth (single admin user) + Storage (job photos)
 - Resend for transactional email (booking confirmations, admin alerts)
 - SMS is manual in v1 (owner texts from admin); Twilio is a v1.1 item
-- No CMS, no payment processing in v1 (pay on the day)
+- No CMS, no card payments: deposit by bank transfer, balance invoiced
 - Analytics: Cloudflare Web Analytics + our own scan/booking event tables
-- QR codes: generated by our own script (`scripts/qr.ts`) against the
-  `/go/[code]` redirect system — QR destinations must stay re-pointable
-  after printing
+- QR codes: generated by `scripts/qr.mts`. Flyers point at the site with
+  `?src=STREETGROUP`; redirects pass the query string through, so a QR on
+  a retired path still attributes
 
-Rationale: this mirrors the owner's existing quote-engine stack
-(Next.js + Supabase + FastAPI on Railway), so Phase 2 integration is
-an API call, not a rebuild.
+The Python quote engine in `quote-engine/` is separate and untouched by the
+website since the relaunch (see SPEC.md §10).
 
 ## Conventions
 
@@ -93,35 +95,39 @@ an API call, not a rebuild.
   server actions only, read nothing sensitive).
 - All business data (services, prices, suburbs) lives in `src/data/` or the
   DB — never hardcoded in components.
-- Every page renders correctly with zero JS enabled except the booking flow.
+- Every page renders correctly with zero JS enabled except the booking form.
+- Home and every suburb page: bundle price and a Book button visible
+  without scrolling on a 375px phone. Keep the hero text-only.
 - Australian English in all copy ("colour", "enquiry", "mould").
-- Phone numbers rendered as `tel:` links; every phone tap and QR scan is a
-  logged event.
+- Phone numbers rendered as `tel:` links; phone taps, landings, booking
+  starts and bookings are logged events carrying the `?src=` code.
 - Accessibility floor: visible focus states, labels on all inputs, contrast
   AA, reduced motion respected.
 
 ## Directory map
 
 ```
+docs/brief/                  # owner's brief + page copy (source of truth)
 src/
   app/
-    page.tsx                 # landing
-    book/                    # booking flow (multi-step)
-    go/[code]/route.ts       # QR redirect + scan logging
-    services/[slug]/         # service SEO pages
-    areas/[suburb]/          # suburb SEO pages
-    quote/                   # photo quote-request form
-    admin/                   # auth-gated: bookings, jobs, QR codes
-    api/                     # route handlers where needed
+    page.tsx                 # home
+    services/                # index + [slug] (5 service pages)
+    pricing/                 # bundles and pricing
+    gutter-guard/
+    areas/                   # index + [suburb] (30 suburb pages)
+    how-it-works/  faq/  privacy/
+    book/                    # booking form -> deposit -> confirmation
   components/
-  data/                      # services.ts, suburbs.ts, faq.ts
-  lib/                       # supabase clients, email, validation
-scripts/
-  qr.ts                      # generate print-ready QR SVG/PNG per code
-supabase/
-  migrations/                # SQL — the schema in SPEC.md §6 is canonical
-flyer/
-  dl-flyer.html              # print template, DL + 3mm bleed (SPEC §11)
+    site/                    # chrome (header/footer/PageShell), sections, ui
+    book/booking-form.tsx
+  data/                      # pricing.json/.ts, service-areas.json, suburbs.ts,
+                             # street-days.json, placeholders.ts, services.ts,
+                             # copy.ts, faq.ts, site.ts (photos), business.ts
+  lib/                       # actions, email, validation, schema (JSON-LD),
+                             # street-days, attribution, supabase clients
+scripts/                     # qr, flyer, photos, perf
+supabase/migrations/         # 0003_exterior_relaunch.sql adds the booking fields
+flyer/dl-flyer.html          # print template - still the old design, needs redo
 ```
 
 ## Key commands
@@ -147,16 +153,16 @@ QUOTE_ENGINE_URL=               # Phase 2 — leave empty for now
 1. Works on a 375px viewport over throttled 4G.
 2. Types clean, lint clean, no console errors.
 3. Events logged where SPEC.md says they must be.
-4. Copy follows the business facts above — nothing invented.
+4. Copy follows docs/brief and the facts above — nothing invented; prices
+   come from pricing.json.
 
 ## Current phase
 
-Phase 1: build everything in SPEC.md §1–9 and the flyer template (§11).
-Phase 2 (instant AI quote) is design-constrained only: keep the booking
-flow's step boundaries clean so a quote step can slot in between address
-and slot selection later. See SPEC.md §10 for the integration contract.
-
-<!-- BEGIN:nextjs-agent-rules -->
+Relaunch (Nov 2026): the site matches `docs/brief/`. First flyer drops are
+Aroona then Buderim from mid-November 2026. Outstanding owner inputs are the
+placeholders in `src/data/placeholders.ts` and the dates in
+`src/data/street-days.json`. The DL flyer template still shows the old
+services and needs redesigning around the Exterior Refresh before printing.
 
 # This is NOT the Next.js you know
 

@@ -7,6 +7,7 @@ import {
   ATTRIBUTION_COOKIE,
   ATTRIBUTION_MAX_AGE,
   normaliseCode,
+  SOURCE_PARAMS,
 } from "@/lib/attribution";
 import { logEvent } from "@/lib/actions/events";
 
@@ -17,8 +18,7 @@ import { logEvent } from "@/lib/actions/events";
  * The cookie is what matters: people read, wander off, and book later, and a
  * booking three days after the first visit would otherwise look organic.
  *
- * The flyer QR carries no code, so this is normally undefined. It exists for
- * any campaign link that does.
+ * Flyer QRs carry `?src=STREETGROUP` (see lib/attribution.ts).
  *
  * Read on the client so pages stay static - a static landing page is most of
  * how the LCP budget is met on 4G.
@@ -26,12 +26,13 @@ import { logEvent } from "@/lib/actions/events";
 export function readSourceCode(): string | undefined {
   if (typeof window === "undefined") return undefined;
 
-  const fromUrl = normaliseCode(
-    new URLSearchParams(window.location.search).get("c"),
+  const params = new URLSearchParams(window.location.search);
+  const fromUrl = SOURCE_PARAMS.map((p) => normaliseCode(params.get(p))).find(
+    Boolean,
   );
   if (fromUrl) {
-    // A ?c= from a campaign link should stick for the rest of the visit, not
-    // just the page it landed on.
+    // A ?src= from a flyer should stick for the rest of the visit, and for a
+    // booking made days later, not just the page it landed on.
     document.cookie = `${ATTRIBUTION_COOKIE}=${fromUrl}; path=/; max-age=${ATTRIBUTION_MAX_AGE}; samesite=lax`;
     return fromUrl;
   }
@@ -93,7 +94,7 @@ export function PhoneLink({
   );
 }
 
-/** Copies `?c=` into a hidden field so form posts keep their attribution. */
+/** Copies `?src=` (or the cookie) into a hidden field so form posts keep their attribution. */
 export function SourceCodeField() {
   const ref = useRef<HTMLInputElement>(null);
 

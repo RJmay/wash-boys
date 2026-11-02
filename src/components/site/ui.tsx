@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-import { BUSINESS } from "@/data/business";
 
 /**
  * The single yellow call to action. Hi-vis is reserved for this and the QR
@@ -62,36 +61,57 @@ export function SectionHeading({
   );
 }
 
-function TickIcon() {
+export function TickIcon({ className = "mt-0.5 size-4" }: { className?: string }) {
   return (
     <svg
       aria-hidden="true"
       viewBox="0 0 20 20"
-      className="mt-0.5 size-4 shrink-0 fill-current"
+      className={`${className} shrink-0 fill-current`}
     >
       <path d="M7.6 14.6 3.4 10.4l1.4-1.4 2.8 2.8 7-7 1.4 1.4z" />
     </svg>
   );
 }
 
-/**
- * The three claims that decide whether a stranger gets onto the property.
- * All three must be true before flyers drop (SPEC §9).
- */
-export function TrustTicks({ tone = "light" }: { tone?: "light" | "dark" }) {
-  const colour = tone === "dark" ? "text-white/90" : "text-ink-muted";
+/** A ticked list, used for "what's included" blocks. */
+export function TickList({
+  items,
+  className = "",
+}: {
+  items: readonly string[];
+  className?: string;
+}) {
   return (
-    <ul className={`flex flex-col gap-1.5 text-sm sm:flex-row sm:gap-5 ${colour}`}>
-      {[
-        BUSINESS.trust.insured,
-        BUSINESS.trust.local,
-        "Re-wash guarantee",
-      ].map((claim) => (
-        <li key={claim} className="flex items-start gap-1.5">
-          <TickIcon />
-          <span>{claim}</span>
+    <ul className={`grid gap-2.5 ${className}`}>
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-2.5">
+          <TickIcon className="mt-1 size-4 text-harbour" />
+          <span>{item}</span>
         </li>
       ))}
     </ul>
+  );
+}
+
+/**
+ * Renders a `[PLACEHOLDER]` from src/data/placeholders.ts so it is impossible
+ * to mistake for finished copy: dashed outline, monospace. Once the string is
+ * replaced with real wording it renders as plain text.
+ */
+export function Placeholder({
+  value,
+  className = "",
+}: {
+  value: string;
+  className?: string;
+}) {
+  if (!value.startsWith("[")) return <span className={className}>{value}</span>;
+  return (
+    <span
+      className={`inline-block rounded border border-dashed border-current px-1.5 py-0.5 font-mono text-[0.8em] ${className}`}
+      data-placeholder=""
+    >
+      {value}
+    </span>
   );
 }

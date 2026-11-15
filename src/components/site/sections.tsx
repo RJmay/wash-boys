@@ -11,21 +11,27 @@ import {
   REFRESH_INCLUDES,
 } from "@/data/copy";
 import { FAQ } from "@/data/faq";
-import { PLACEHOLDERS } from "@/data/placeholders";
+import { isFilled, isShown, PLACEHOLDERS, SHOW_PLACEHOLDERS } from "@/data/placeholders";
 import {
   BUNDLES,
   DOUBLE_STOREY,
   formatPrice,
+  getPricedService,
   GUTTER_GUARD,
+  GUTTER_GUARD_FROM,
   HEADLINE_BUNDLE,
   itemName,
   packageLength,
+  servicePriceLabel,
+  SERVICES_PRICED,
   type Bundle,
 } from "@/data/pricing";
 import { SERVICE_PAGES, servicePrice } from "@/data/services";
 import { pairsFor, PHOTO_SLOTS, reviews } from "@/data/site";
 import { PRIORITY_SUBURBS } from "@/data/suburbs";
 import { BeforeAfterSlider } from "./before-after";
+import { CallbackForm } from "./callback-form";
+import { ContactLinks } from "./tracking";
 import { card, cta, ctaQuiet, Placeholder, Section, SectionHeading, TickList } from "./ui";
 
 /**
@@ -44,6 +50,7 @@ export function Hero({
   bookHref = "/book",
   secondary = { href: "/pricing", label: "See all prices" },
   headingClassName = "text-hero",
+  after,
 }: {
   headingClassName?: string;
   eyebrow?: string;
@@ -51,6 +58,8 @@ export function Hero({
   children: ReactNode;
   bookHref?: string | { pathname: string; query: Record<string, string> };
   secondary?: { href: string; label: string };
+  /** A line under the buttons, so it never pushes them down the screen. */
+  after?: ReactNode;
 }) {
   return (
     <section className="on-dark bg-harbour px-5 pt-6 pb-8 text-white sm:pt-12 sm:pb-14">
@@ -73,8 +82,27 @@ export function Hero({
             {secondary.label}
           </Link>
         </div>
+        {after}
       </div>
     </section>
+  );
+}
+
+/** "Only need the gutters done? Gutter clean $190 →", for the hero. */
+export function JustGuttersLine() {
+  const gutters = getPricedService("gutter-clean");
+  if (!gutters) return null;
+  return (
+    <p className="text-white/85">
+      Only need the gutters done?{" "}
+      <Link
+        href="/book?package=single&services=gutter-clean"
+        className="font-semibold text-white underline underline-offset-4"
+      >
+        {gutters.name} {servicePriceLabel(gutters)}
+        <span aria-hidden="true">&nbsp;→</span>
+      </Link>
+    </p>
   );
 }
 
@@ -95,6 +123,59 @@ export function RefreshIncludes() {
           Book the {HEADLINE_BUNDLE.name}
         </Link>
       </div>
+    </Section>
+  );
+}
+
+/**
+ * Single services, each one tap from a prefilled booking. The home page sells
+ * the bundle hard, so without this a visitor who only wants their gutters
+ * cleaned never sees a price under $790 and leaves.
+ */
+export function SingleServices({ className = "" }: { className?: string }) {
+  return (
+    <Section labelledBy="single-heading" className={className}>
+      <SectionHeading id="single-heading">Just need one thing?</SectionHeading>
+      <p className="mt-3 text-ink-muted">
+        Book any service on its own. Single-storey prices, GST included.
+      </p>
+      <ul className="mt-5 divide-y divide-line border-y border-line">
+        {SERVICES_PRICED.map((service) => (
+          <li key={service.id}>
+            <Link
+              href={`/book?package=single&services=${service.id}`}
+              className="flex items-baseline justify-between gap-4 py-3 font-semibold text-ink hover:text-harbour"
+            >
+              <span>
+                {service.name}{" "}
+                <span className="font-normal text-ink-muted" aria-hidden="true">
+                  →
+                </span>
+              </span>
+              <span className="shrink-0 font-display text-lg text-harbour">
+                {servicePriceLabel(service)}
+              </span>
+            </Link>
+          </li>
+        ))}
+        <li>
+          <Link
+            href="/gutter-guard"
+            className="flex items-baseline justify-between gap-4 py-3 font-semibold text-ink hover:text-harbour"
+          >
+            <span>
+              Gutter guard, fitted{" "}
+              <span className="font-normal text-ink-muted" aria-hidden="true">
+                →
+              </span>
+            </span>
+            <span className="shrink-0 font-display text-lg text-harbour">
+              from {formatPrice(GUTTER_GUARD_FROM)}
+            </span>
+          </Link>
+        </li>
+      </ul>
+      <DoubleStoreyNote />
     </Section>
   );
 }
@@ -200,17 +281,24 @@ export function TrustStrip() {
       <h2 id="trust-heading" className="sr-only">
         Why book us
       </h2>
-      <TickList items={items} className="text-ink" />
-      <ul className="mt-3 grid gap-2.5 text-sm text-ink-muted">
-        <li>
-          <Placeholder value={PLACEHOLDERS.insurance} />
-        </li>
-        {reviews.length === 0 ? (
-          <li>
-            <Placeholder value={PLACEHOLDERS.reviews} />
-          </li>
-        ) : null}
-      </ul>
+      <TickList
+        items={isFilled(PLACEHOLDERS.insurance) ? [...items, PLACEHOLDERS.insurance] : items}
+        className="text-ink"
+      />
+      {SHOW_PLACEHOLDERS ? (
+        <ul className="mt-3 grid gap-2.5 text-sm text-ink-muted">
+          {isFilled(PLACEHOLDERS.insurance) ? null : (
+            <li>
+              <Placeholder value={PLACEHOLDERS.insurance} />
+            </li>
+          )}
+          {reviews.length === 0 ? (
+            <li>
+              <Placeholder value={PLACEHOLDERS.reviews} />
+            </li>
+          ) : null}
+        </ul>
+      ) : null}
       {reviews.length > 0 ? (
         <ul className="mt-6 grid gap-4 sm:grid-cols-2">
           {reviews.map((review) => (
@@ -235,16 +323,23 @@ const PHOTO_PLACEHOLDER = {
 
 /**
  * Real before-and-afters, one slot per service. A service without a real pair
- * yet shows its placeholder. Add pairs in src/data/site.ts.
+ * yet shows its placeholder while developing and is left out of production
+ * builds; with no slots left the whole section goes. Add pairs in
+ * src/data/site.ts.
  */
 export function RecentWork({
   only,
+  className = "bg-surface",
 }: {
   only?: (typeof PHOTO_SLOTS)[number]["service"][];
+  className?: string;
 }) {
-  const slots = PHOTO_SLOTS.filter((s) => !only || only.includes(s.service));
+  const slots = PHOTO_SLOTS.filter((s) => !only || only.includes(s.service)).filter(
+    (s) => SHOW_PLACEHOLDERS || pairsFor(s.service).length > 0,
+  );
+  if (slots.length === 0) return null;
   return (
-    <Section labelledBy="work-heading" className="bg-surface">
+    <Section labelledBy="work-heading" className={className}>
       <SectionHeading id="work-heading">Recent work</SectionHeading>
       <ul className="mt-6 grid gap-5 sm:grid-cols-2">
         {slots.map((slot) => {
@@ -282,7 +377,7 @@ export function FaqList({ headingLevel = "h2" }: { headingLevel?: "h1" | "h2" })
         Questions
       </Heading>
       <div className="mt-6 divide-y divide-line border-y border-line">
-        {FAQ.map((item) => (
+        {FAQ.filter((item) => isShown(item.a)).map((item) => (
           <details key={item.q} className="group py-3">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-semibold text-ink marker:hidden">
               {item.q}
@@ -419,6 +514,24 @@ export function GutterGuardTable() {
         </tbody>
       </table>
     </div>
+  );
+}
+
+/**
+ * For the visitor who wants a word first: call, text, or leave a number.
+ * Booking a day and paying a deposit to a business you met on a flyer is a
+ * big first step; this is the small one.
+ */
+export function TalkFirst({ className = "bg-surface" }: { className?: string }) {
+  return (
+    <Section labelledBy="talk-heading" className={className}>
+      <SectionHeading id="talk-heading">Rather talk first?</SectionHeading>
+      <p className="mt-3 text-ink">
+        <ContactLinks />
+      </p>
+      <p className="mt-2 text-ink-muted">Or leave your number and we&apos;ll call you back.</p>
+      <CallbackForm />
+    </Section>
   );
 }
 

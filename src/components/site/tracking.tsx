@@ -94,6 +94,46 @@ export function PhoneLink({
   );
 }
 
+/**
+ * Link that opens a text to us and logs `text_tap`. Plenty of people would
+ * rather send a message from the letterbox than ring a stranger. Like
+ * PhoneLink, it works with JavaScript off; the logging is the enhancement.
+ */
+export function TextLink({
+  className,
+  children,
+}: {
+  className?: string;
+  children: ReactNode;
+}) {
+  if (!PHONE_CONFIGURED) {
+    return <span className={className}>{children}</span>;
+  }
+
+  return (
+    <a
+      href={`sms:${BUSINESS.phone.tel}`}
+      className={className}
+      onClick={() => {
+        void logEvent({ type: "text_tap", code: readSourceCode() });
+      }}
+    >
+      {children}
+    </a>
+  );
+}
+
+/** "Call 0478 474 313 or send a text." Both tracked. */
+export function ContactLinks({ className = "" }: { className?: string }) {
+  const link = "font-semibold underline underline-offset-4";
+  return (
+    <span className={className}>
+      Call <PhoneLink className={link}>{BUSINESS.phone.display}</PhoneLink> or{" "}
+      <TextLink className={link}>send a text</TextLink>.
+    </span>
+  );
+}
+
 /** Copies `?src=` (or the cookie) into a hidden field so form posts keep their attribution. */
 export function SourceCodeField() {
   const ref = useRef<HTMLInputElement>(null);

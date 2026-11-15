@@ -6,9 +6,12 @@ import {
   GutterGuardTeaser,
   Hero,
   HowItWorksSteps,
+  JustGuttersLine,
   PriceTag,
   RecentWork,
   RefreshIncludes,
+  SingleServices,
+  TalkFirst,
   TrustStrip,
   WhereWeWork,
 } from "@/components/site/sections";
@@ -32,7 +35,7 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <PageShell>
-      <Hero heading="Your whole exterior, done in one morning.">
+      <Hero heading="Your whole exterior, done in one morning." after={<JustGuttersLine />}>
         <p className="text-lg text-white/90">
           House wash, driveway, gutters and windows.{" "}
           <PriceTag amount={HEADLINE_BUNDLE.price} />, fixed price, single-storey home.
@@ -42,12 +45,15 @@ export default function Home() {
         </p>
       </Hero>
       <RefreshIncludes />
+      {/* Proof straight after the offer: real jobs do more than any claim. */}
+      <RecentWork className="" />
+      <SingleServices className="bg-surface" />
       <HowItWorksSteps />
       <GutterGuardTeaser />
-      <RecentWork />
       <WhereWeWork />
       <TrustStrip />
       <BookBand />
+      <TalkFirst />
     </PageShell>
   );
 }

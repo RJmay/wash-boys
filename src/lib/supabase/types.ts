@@ -36,6 +36,8 @@ export type EventType =
   | "book_start"
   | "book_done"
   | "call_tap"
+  | "text_tap"
+  | "callback_req"
   | "quote_req"
   | "lead_out_of_area";
 

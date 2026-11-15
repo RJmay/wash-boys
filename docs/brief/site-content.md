@@ -150,6 +150,12 @@ Then the bundle card, the services list, How it works, and the Book button.
 
 **What if it rains?** We move you to the next available day at no cost.
 
+**How do I pay?** A $100 deposit by bank transfer holds your day ($300 with gutter guard). Nothing is paid on the website. We invoice the balance after the job.
+
+**Can I change or cancel my booking?** `[PLACEHOLDER: change, cancellation and deposit refund policy]`
+
+**What if I'm not happy with something?** `[PLACEHOLDER: what happens if a customer isn't happy]`
+
 **Do you do double-storey?** Yes: +$200 on washing and windows, +$400 on gutter guard.
 
 **Do you clean roofs or solar panels?** Not yet.
@@ -162,17 +168,17 @@ Then the bundle card, the services list, How it works, and the Book button.
 
 ## Book
 
-Form fields:
+Form fields, choices first and contact details last (Nov 2026):
 
+- What would you like? Exterior Refresh / Full Exterior / Gutter guard (Small, Medium, Large, not sure) / Single services (checkboxes: house wash, driveway, gutter clean, windows)
+- Storeys: single / double
+- Roof type: tile / metal / not sure (show only for gutter guard)
+- Suburb (select from service-areas.json, plus "Other")
+- Preferred day: show next available dates for their suburb, or a date picker
 - Name (required)
 - Mobile (required)
 - Email (required)
 - Street address (required)
-- Suburb (select from service-areas.json, plus "Other")
-- Storeys: single / double
-- What would you like? Exterior Refresh / Full Exterior / Gutter guard (Small, Medium, Large, not sure) / Single services (checkboxes: house wash, driveway, gutter clean, windows)
-- Roof type: tile / metal / not sure (show only for gutter guard)
-- Preferred day: show next available dates for their suburb, or a date picker
 - Photos of the house (optional upload)
 - Anything we should know? (gates, dogs, access)
 - Hidden: `source` (from `?src=` URL parameter), `page` (page the form was submitted from)

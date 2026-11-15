@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { isFilled, SHOW_PLACEHOLDERS } from "@/data/placeholders";
 
 /**
  * The single yellow call to action. Hi-vis is reserved for this and the QR
@@ -97,6 +98,10 @@ export function TickList({
  * Renders a `[PLACEHOLDER]` from src/data/placeholders.ts so it is impossible
  * to mistake for finished copy: dashed outline, monospace. Once the string is
  * replaced with real wording it renders as plain text.
+ *
+ * In a production build an unfilled one renders nothing. Callers that wrap it
+ * in a list item or paragraph should check `isShown()` first so they do not
+ * leave an empty row behind.
  */
 export function Placeholder({
   value,
@@ -105,7 +110,8 @@ export function Placeholder({
   value: string;
   className?: string;
 }) {
-  if (!value.startsWith("[")) return <span className={className}>{value}</span>;
+  if (isFilled(value)) return <span className={className}>{value}</span>;
+  if (!SHOW_PLACEHOLDERS) return null;
   return (
     <span
       className={`inline-block rounded border border-dashed border-current px-1.5 py-0.5 font-mono text-[0.8em] ${className}`}

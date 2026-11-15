@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PageShell } from "@/components/site/chrome";
-import { NextDates } from "@/components/site/next-dates";
+import { StreetDaysLine } from "@/components/site/next-dates";
 import {
   BookBand,
   BundleCards,
@@ -12,6 +12,7 @@ import {
   HowItWorksSteps,
   PriceTag,
   ServicePriceList,
+  TalkFirst,
 } from "@/components/site/sections";
 import { Section, SectionHeading } from "@/components/site/ui";
 import { formatPrice, HEADLINE_BUNDLE } from "@/data/pricing";
@@ -84,7 +85,7 @@ export default async function AreaPage({
           home.
         </p>
         <p className="text-white/85">
-          We&apos;re booking {suburb.name} streets on: <NextDates dates={days} />
+          <StreetDaysLine suburbName={suburb.name} dates={days} />
         </p>
       </Hero>
 
@@ -146,6 +147,7 @@ export default async function AreaPage({
       ) : null}
 
       <BookBand href={bookHref} label={`Book in ${suburb.name}`} />
+      <TalkFirst />
     </PageShell>
   );
 }

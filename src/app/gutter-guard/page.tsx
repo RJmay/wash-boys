@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PageShell } from "@/components/site/chrome";
-import { BookBand, GutterGuardTable, RecentWork } from "@/components/site/sections";
+import { BookBand, GutterGuardTable, RecentWork, TalkFirst } from "@/components/site/sections";
 import { cta, Placeholder, Section, SectionHeading, TickList } from "@/components/site/ui";
-import { PLACEHOLDERS } from "@/data/placeholders";
+import { isShown, PLACEHOLDERS } from "@/data/placeholders";
 import {
   DOUBLE_STOREY,
   formatPrice,
@@ -74,9 +74,11 @@ export default function GutterGuardPage() {
       <Section labelledBy="included">
         <SectionHeading id="included">What&apos;s included</SectionHeading>
         <TickList items={INCLUDED} className="mt-5 text-ink" />
-        <p className="mt-5 text-sm text-ink-muted">
-          <Placeholder value={PLACEHOLDERS.gutterGuardWarranty} />
-        </p>
+        {isShown(PLACEHOLDERS.gutterGuardWarranty) ? (
+          <p className="mt-5 text-sm text-ink-muted">
+            <Placeholder value={PLACEHOLDERS.gutterGuardWarranty} />
+          </p>
+        ) : null}
       </Section>
 
       <RecentWork only={["gutter-guard"]} />
@@ -103,6 +105,7 @@ export default function GutterGuardPage() {
         href="/book?package=gutter-guard"
         label="Book gutter guard"
       />
+      <TalkFirst />
     </PageShell>
   );
 }

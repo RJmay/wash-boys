@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { BUSINESS } from "@/data/business";
 import { HEADLINE_PRICE } from "@/data/copy";
 import { PRIORITY_SUBURBS } from "@/data/suburbs";
-import { PhoneLink, TrackLand } from "./tracking";
+import { PhoneLink, TextLink, TrackLand } from "./tracking";
 
 /** Site navigation, in the order the brief lists the pages. */
 export const NAV: readonly { href: string; label: string }[] = [
@@ -61,6 +61,13 @@ export function StickyBar() {
           </svg>
           <span className="sr-only">Call {BUSINESS.phone.display}</span>
         </PhoneLink>
+
+        <TextLink className="flex items-center rounded-lg px-2 py-2 hover:bg-white/10">
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5 fill-current">
+            <path d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2zm3 6v2h2V9zm4 0v2h2V9zm4 0v2h2V9z" />
+          </svg>
+          <span className="sr-only">Text {BUSINESS.phone.display}</span>
+        </TextLink>
 
         <Link
           href="/book"
@@ -120,7 +127,7 @@ export function Footer() {
         <p className="text-sm leading-relaxed">
           {BUSINESS.name} ·{" "}
           <PhoneLink className="underline underline-offset-4">{BUSINESS.phone.display}</PhoneLink>{" "}
-          ·{" "}
+          (<TextLink className="underline underline-offset-4">text</TextLink>) ·{" "}
           <a href={`mailto:${BUSINESS.email}`} className="underline underline-offset-4">
             {BUSINESS.email}
           </a>{" "}

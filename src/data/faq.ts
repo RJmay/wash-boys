@@ -1,10 +1,10 @@
 import { PLACEHOLDERS } from "./placeholders";
-import { DOUBLE_STOREY, formatPrice } from "./pricing";
+import { DEPOSITS, DOUBLE_STOREY, formatPrice } from "./pricing";
 
 /**
- * FAQ (docs/brief/site-content.md). Answers that are still placeholders
- * render visibly on the page but are left out of the FAQPage structured data,
- * so search engines never quote a placeholder.
+ * FAQ (docs/brief/site-content.md). A question whose answer is still a
+ * placeholder shows only while developing; production builds and the FAQPage
+ * structured data leave it out until the answer is filled in.
  */
 
 export type FaqItem = {
@@ -28,6 +28,18 @@ export const FAQ: readonly FaqItem[] = [
   {
     q: "What if it rains?",
     a: "We move you to the next available day at no cost.",
+  },
+  {
+    q: "How do I pay?",
+    a: `A ${formatPrice(DEPOSITS.cleaning)} deposit by bank transfer holds your day (${formatPrice(DEPOSITS.gutterGuard)} with gutter guard). Nothing is paid on the website. We invoice the balance after the job.`,
+  },
+  {
+    q: "Can I change or cancel my booking?",
+    a: PLACEHOLDERS.cancellationFaq,
+  },
+  {
+    q: "What if I'm not happy with something?",
+    a: PLACEHOLDERS.notHappyFaq,
   },
   {
     q: "Do you do double-storey?",

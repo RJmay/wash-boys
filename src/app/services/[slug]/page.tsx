@@ -8,6 +8,7 @@ import {
   BundleCards,
   DoubleStoreyNote,
   RecentWork,
+  TalkFirst,
 } from "@/components/site/sections";
 import { cta, Section, SectionHeading, TickList } from "@/components/site/ui";
 import { formatPrice, HEADLINE_BUNDLE } from "@/data/pricing";
@@ -115,6 +116,7 @@ export default async function ServicePage({
       </Section>
 
       <BookBand />
+      <TalkFirst />
     </PageShell>
   );
 }

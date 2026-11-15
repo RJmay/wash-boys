@@ -94,20 +94,37 @@ from `src/data/pricing.json` via `src/data/pricing.ts`.
   "We're booking [suburb] streets on:" reads `src/data/street-days.json`
   and shows `[NEXT DATES]` when empty.
 - **Placeholders:** every claim not yet true (insurance, reviews, warranty,
-  bank details, missing photos) lives in `src/data/placeholders.ts` and
-  renders visibly in a dashed box until filled.
+  bank details, missing photos, FAQ answers) lives in
+  `src/data/placeholders.ts`. In `next dev` each renders visibly in a dashed
+  box until filled. In a production build an unfilled one is left off the
+  page (its list item, FAQ question or photo slot goes with it), and an
+  empty suburb's street-days line says the day is confirmed by phone. Buyers
+  read a visible placeholder as "not insured, no reviews" (Nov 2026 audit).
+- **Single services** are listed on the home page under the photos, each
+  linking to a prefilled booking, with "Only need the gutters done?" under
+  the hero buttons, so a gutter-only visitor sees $190 and not just $790.
+- **Rather talk first?** (`TalkFirst`) closes the home, suburb, service and
+  gutter guard pages: call, text (`sms:`), or a "Call me back" form (mobile,
+  suburb, optional name). It saves a `leads` row (kind `general`), emails
+  the owner and logs `callback_req`. The header and footer carry a text link
+  beside the phone (`text_tap`).
 - **Photos:** real pairs only, tagged by service in `src/data/site.ts`.
   A service with no pair shows its placeholder slot.
 
 ## 5. Booking (`/book`)
 
-One-page form, fields in the brief's order: name, mobile, email (all
-required), street address, suburb (list + "Other"), storeys, what would you
-like (Exterior Refresh / Full Exterior / Gutter guard with size / single
-services, plus an "add fences" option on every non-single choice), roof type (gutter guard only, incl. Full Exterior), preferred
-day (the suburb's street days, else a date picker), photos (optional, up to
-4, shrunk in the browser), notes. Hidden: `source` (from `?src=` or the
-attribution cookie) and `page` (same-origin referrer).
+One-page form. Choices first and contact details last (owner's call, Nov
+2026 audit: asking for name, mobile and email before a visitor has seen
+their price is where they drop off): what would you like (Exterior Refresh
+/ Full Exterior / Gutter guard with size / single services, plus an "add
+fences" option on every non-single choice), storeys, roof type (gutter
+guard only, incl. Full Exterior), suburb (list + "Other"), preferred day
+(the suburb's street days, else a date picker), then name, mobile, email
+(all required) and street address, then photos (optional, up to 4, shrunk
+in the browser) and notes. Hidden: `source` (from `?src=` or the
+attribution cookie) and `page` (same-origin referrer). The button reads
+"Book my day" with "No payment on this page" under it: nothing is charged
+on the site.
 
 Server action (`src/lib/actions/booking.ts`) re-prices from pricing.json,
 checks the day is under `capacityPerDay`, saves with a reference
@@ -116,7 +133,9 @@ sides, logs `book_done`. Then:
 
 1. **Deposit step:** $100 cleaning / $300 anything with gutter guard, by
    bank transfer with the reference. `deposit_status` starts `pending`; the
-   owner marks it paid.
+   owner marks it paid. Each detail has a Copy button for the banking app.
+   Until the bank details are filled, production says "We'll text you the
+   bank details", the same as the confirmation email.
 2. **Confirmation:** "You're booked for [date]. We'll text you the day
    before."
 
@@ -149,7 +168,8 @@ create table events (
   id bigserial primary key,
   ts timestamptz default now(),
   type text not null,             -- scan | land | book_start | book_done |
-                                  -- call_tap | quote_req | lead_out_of_area
+                                  -- call_tap | text_tap | callback_req |
+                                  -- quote_req | lead_out_of_area (0004)
   code text references qr_codes(code),
   meta jsonb
 );

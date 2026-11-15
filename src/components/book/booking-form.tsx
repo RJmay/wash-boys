@@ -8,12 +8,14 @@ import {
   useId,
   useRef,
   useState,
+  useSyncExternalStore,
   type FormEvent,
   type InputHTMLAttributes,
   type ReactNode,
 } from "react";
 
 import { BUSINESS } from "@/data/business";
+import { isFilled, SHOW_PLACEHOLDERS } from "@/data/placeholders";
 import {
   ADD_ONS,
   BUNDLES,
@@ -215,98 +217,6 @@ export function BookingForm({
       <input type="hidden" name="source" value={source} />
       <input type="hidden" name="page" value={page} />
 
-      <Fieldset legend="Your details">
-        <TextField id={ids.name} name="name" label="Name" autoComplete="name" required error={errors.name} />
-        <TextField
-          id={ids.phone}
-          name="phone"
-          label="Mobile"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder="0412 345 678"
-          required
-          error={errors.phone}
-        />
-        <TextField
-          id={ids.email}
-          name="email"
-          label="Email"
-          type="email"
-          autoComplete="email"
-          required
-          error={errors.email}
-          hint="Your booking and the deposit details go here."
-        />
-        <TextField
-          id={ids.address}
-          name="address"
-          label="Street address"
-          autoComplete="street-address"
-          placeholder="12 Example Street"
-          required
-          error={errors.address}
-        />
-
-        <div>
-          <label htmlFor={ids.suburb} className="block text-sm font-semibold">
-            Suburb
-          </label>
-          <select
-            id={ids.suburb}
-            name="suburb"
-            value={suburb}
-            required
-            onChange={(e) => {
-              setSuburb(e.target.value);
-              setDate("");
-            }}
-            className={`${field} mt-1`}
-          >
-            <option value="">Choose your suburb…</option>
-            {SUBURBS_ALPHABETICAL.map((s) => (
-              <option key={s.slug} value={s.slug}>
-                {s.name}
-              </option>
-            ))}
-            <option value={OTHER}>Other</option>
-          </select>
-          {errors.suburb ? <p className={fieldError}>{errors.suburb}</p> : null}
-        </div>
-
-        {isOther ? (
-          <div className="rounded-lg bg-harbour/5 p-4">
-            <TextField
-              id={ids.other}
-              name="other_suburb"
-              label="Which suburb?"
-              required
-              error={errors.other_suburb}
-            />
-            <p className="mt-2 text-sm text-ink-muted">
-              We&apos;re not booking there yet. Send your details and we&apos;ll call you about a
-              day. No deposit needed.
-            </p>
-          </div>
-        ) : null}
-      </Fieldset>
-
-      <Fieldset legend="Storeys">
-        <div className="flex gap-2">
-          {(["single", "double"] as const).map((value) => (
-            <Choice
-              key={value}
-              name="storeys"
-              value={value}
-              checked={storeys === value}
-              onChange={() => setStoreys(value)}
-            >
-              {value === "single" ? "Single" : "Double"}
-            </Choice>
-          ))}
-        </div>
-      </Fieldset>
-
       <Fieldset legend="What would you like?" error={errors.package ?? errors.services ?? errors.gutter_guard_size}>
         <div className="grid gap-2">
           {(Object.keys(PACKAGE_LABELS) as PackageChoice[]).map((value) => (
@@ -399,6 +309,22 @@ export function BookingForm({
         )}
       </Fieldset>
 
+      <Fieldset legend="Storeys">
+        <div className="flex gap-2">
+          {(["single", "double"] as const).map((value) => (
+            <Choice
+              key={value}
+              name="storeys"
+              value={value}
+              checked={storeys === value}
+              onChange={() => setStoreys(value)}
+            >
+              {value === "single" ? "Single" : "Double"}
+            </Choice>
+          ))}
+        </div>
+      </Fieldset>
+
       {showRoof ? (
         <Fieldset legend="Roof type" error={errors.roof_type}>
           <div className="flex flex-wrap gap-2">
@@ -410,6 +336,50 @@ export function BookingForm({
           </div>
         </Fieldset>
       ) : null}
+
+      <Fieldset legend="Your suburb">
+        <div>
+          <label htmlFor={ids.suburb} className="sr-only">
+            Suburb
+          </label>
+          <select
+            id={ids.suburb}
+            name="suburb"
+            value={suburb}
+            required
+            onChange={(e) => {
+              setSuburb(e.target.value);
+              setDate("");
+            }}
+            className={`${field} mt-1`}
+          >
+            <option value="">Choose your suburb…</option>
+            {SUBURBS_ALPHABETICAL.map((s) => (
+              <option key={s.slug} value={s.slug}>
+                {s.name}
+              </option>
+            ))}
+            <option value={OTHER}>Other</option>
+          </select>
+          {errors.suburb ? <p className={fieldError}>{errors.suburb}</p> : null}
+        </div>
+
+        {isOther ? (
+          <div className="rounded-lg bg-harbour/5 p-4">
+            <TextField
+              id={ids.other}
+              name="other_suburb"
+              label="Which suburb?"
+              required
+              error={errors.other_suburb}
+            />
+            <p className="mt-2 text-sm text-ink-muted">
+              We&apos;re not booking there yet. Send your details and we&apos;ll call you about a
+              day. No deposit needed.
+            </p>
+          </div>
+        ) : null}
+      </Fieldset>
 
       <Fieldset legend="Preferred day" error={errors.preferred_date}>
         {days.length > 0 ? (
@@ -453,6 +423,40 @@ export function BookingForm({
             </p>
           </div>
         )}
+      </Fieldset>
+
+      <Fieldset legend="Your details">
+        <TextField id={ids.name} name="name" label="Name" autoComplete="name" required error={errors.name} />
+        <TextField
+          id={ids.phone}
+          name="phone"
+          label="Mobile"
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          placeholder="0412 345 678"
+          required
+          error={errors.phone}
+        />
+        <TextField
+          id={ids.email}
+          name="email"
+          label="Email"
+          type="email"
+          autoComplete="email"
+          required
+          error={errors.email}
+          hint="Your booking and the deposit details go here."
+        />
+        <TextField
+          id={ids.address}
+          name="address"
+          label="Street address"
+          autoComplete="street-address"
+          placeholder="12 Example Street"
+          required
+          error={errors.address}
+        />
       </Fieldset>
 
       <div>
@@ -518,8 +522,14 @@ export function BookingForm({
           </div>
         ) : null}
         <button type="submit" disabled={busy} className={`${cta} w-full disabled:opacity-60`}>
-          {preparing ? "Preparing photos…" : pending ? "Sending…" : isOther ? "Send enquiry" : "Book and pay deposit"}
+          {preparing ? "Preparing photos…" : pending ? "Sending…" : isOther ? "Send enquiry" : "Book my day"}
         </button>
+        {/* "Pay" on the button read as a card form. Nothing is charged here. */}
+        <p className="mt-2 text-center text-xs text-ink-muted">
+          {isOther
+            ? "No deposit needed. We'll call you about a day."
+            : "No payment on this page. The deposit details come next."}
+        </p>
       </div>
     </form>
   );
@@ -527,31 +537,56 @@ export function BookingForm({
 
 /* ── Deposit and confirmation ───────────────────────────────────────────── */
 
+/** Digits only: what a banking app's BSB and account fields accept. */
+const digits = (value: string) => value.replace(/\D/g, "");
+
 function DepositStep({ booking, onDone }: { booking: BookingSuccess; onDone: () => void }) {
   const { accountName, bsb, accountNumber } = BUSINESS.bank;
-  const rows: [string, string][] = [
-    ["Account name", accountName],
-    ["BSB", bsb],
-    ["Account", accountNumber],
-    ["Reference", booking.reference],
-    ["Amount", formatPrice(booking.deposit)],
+  const bankReady = [accountName, bsb, accountNumber].every(isFilled);
+  // Unfilled bank details: placeholders while developing; in production the
+  // same promise the confirmation email makes - we text the details.
+  const showBank = bankReady || SHOW_PLACEHOLDERS;
+
+  /** [label, shown value, value copied to the clipboard] */
+  const rows: [string, string, string][] = [
+    ...(showBank
+      ? ([
+          ["Account name", accountName, accountName],
+          ["BSB", bsb, digits(bsb)],
+          ["Account", accountNumber, digits(accountNumber)],
+        ] as [string, string, string][])
+      : []),
+    ["Reference", booking.reference, booking.reference],
+    ["Amount", formatPrice(booking.deposit), String(booking.deposit)],
   ];
 
   return (
     <div className="mt-6 rounded-xl border border-line bg-surface p-6">
       <p className="text-sm font-semibold tracking-wide text-harbour uppercase">Step 2 of 2</p>
-      <p className="display-caps mt-1 text-section text-harbour">Pay your deposit</p>
+      <p className="display-caps mt-1 text-section text-harbour">
+        {showBank ? "Pay your deposit" : "Your deposit"}
+      </p>
       <p className="mt-3 text-ink">
-        Transfer the {formatPrice(booking.deposit)} deposit to hold {formatLongDate(booking.date)}.
+        {showBank ? (
+          <>
+            Transfer the {formatPrice(booking.deposit)} deposit to hold {formatLongDate(booking.date)}.
+          </>
+        ) : (
+          <>
+            We&apos;ll text you the bank details to pay the {formatPrice(booking.deposit)} deposit
+            that holds {formatLongDate(booking.date)}.
+          </>
+        )}{" "}
         Put <strong>{booking.reference}</strong> as the reference so we can match it.
       </p>
 
-      <dl className="mt-5 grid gap-2 border-y border-line py-4 text-sm">
-        {rows.map(([label, value]) => (
-          <div key={label} className="flex gap-3">
+      <dl className="mt-5 grid gap-1 border-y border-line py-3 text-sm">
+        {rows.map(([label, value, copyValue]) => (
+          <div key={label} className="flex items-center gap-3">
             <dt className="w-28 shrink-0 text-ink-muted">{label}</dt>
-            <dd className="font-semibold text-ink">
+            <dd className="flex flex-1 items-center justify-between gap-2 font-semibold text-ink">
               <Placeholder value={value} />
+              {isFilled(value) ? <CopyButton label={label} value={copyValue} /> : null}
             </dd>
           </div>
         ))}
@@ -597,6 +632,43 @@ function Confirmation({ booking }: { booking: BookingSuccess }) {
 }
 
 /* ── Small form pieces ──────────────────────────────────────────────────── */
+
+/**
+ * Tap-to-copy for the deposit details. The customer is about to switch to
+ * their banking app on the same phone; retyping a BSB and a WB- reference from
+ * memory is where transfers go astray. Hidden where the clipboard API is not
+ * available - the value is still on screen to copy by hand.
+ */
+function CopyButton({ label, value }: { label: string; value: string }) {
+  const [copied, setCopied] = useState(false);
+  const canCopy = useSyncExternalStore(
+    noopSubscribe,
+    () => typeof navigator !== "undefined" && Boolean(navigator.clipboard?.writeText),
+    () => false,
+  );
+  if (!canCopy) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(value);
+          setCopied(true);
+          window.setTimeout(() => setCopied(false), 2000);
+        } catch {
+          /* the value is on screen either way */
+        }
+      }}
+      className="shrink-0 rounded-md border border-line-strong px-3 py-1.5 text-xs font-semibold text-harbour hover:bg-harbour/5"
+    >
+      <span aria-live="polite">{copied ? "Copied" : "Copy"}</span>
+      <span className="sr-only"> {label}</span>
+    </button>
+  );
+}
+
+const noopSubscribe = () => () => {};
 
 function Fieldset({
   legend,

@@ -122,6 +122,55 @@ function siteUrlSafe(): string {
   }
 }
 
+/**
+ * Owner alert for a lead: a "Call me back" request or an out-of-area enquiry.
+ * There is no admin screen yet, so without this a lead sits in the table and
+ * nobody rings it. Best effort, like every send here.
+ */
+export async function sendLeadAlert(lead: {
+  kind: "callback" | "out_of_area";
+  name?: string;
+  phone: string;
+  suburb: string;
+  message?: string;
+  source?: string;
+}): Promise<boolean> {
+  let resend: Resend;
+  let adminEmail: string;
+  try {
+    const env = emailEnv();
+    resend = new Resend(env.RESEND_API_KEY);
+    adminEmail = env.ADMIN_EMAIL;
+  } catch {
+    return false;
+  }
+
+  const what = lead.kind === "callback" ? "CALL BACK" : "OUT OF AREA";
+  const body = [
+    `${what}: ${lead.name ?? "No name"}, ${lead.suburb}`,
+    "",
+    `  ${formatAuMobile(lead.phone)}`,
+    lead.message ? `  ${lead.message.replace(/\n/g, "\n  ")}` : "",
+    `  Source: ${lead.source ?? "none"}`,
+    "",
+    `Call them: tel:${lead.phone}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  try {
+    const { error } = await resend.emails.send({
+      from: `${BUSINESS.name} <${BUSINESS.email}>`,
+      to: adminEmail,
+      subject: `${what}: ${lead.name ?? formatAuMobile(lead.phone)}, ${lead.suburb}`,
+      text: body,
+    });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 export type EmailResult = { customer: boolean; owner: boolean };
 
 export async function sendBookingEmails(

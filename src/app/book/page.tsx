@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { BookingForm } from "@/components/book/booking-form";
 import { PageShell } from "@/components/site/chrome";
+import { ContactLinks } from "@/components/site/tracking";
 import { Section } from "@/components/site/ui";
 import {
   GUTTER_GUARD_SIZES,
@@ -63,6 +64,10 @@ export default async function BookPage({ searchParams }: PageProps<"/book">) {
         <h1 id="book-heading" className="display-caps text-hero text-harbour">
           Book your day
         </h1>
+        <p className="mt-3 text-ink-muted">
+          Choose what you&apos;d like and a day, and you&apos;ll see the price as you go.{" "}
+          Rather talk first? <ContactLinks />
+        </p>
         <BookingForm
           streetDays={allUpcomingDays()}
           initialPackage={initialPackage}

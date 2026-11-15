@@ -31,7 +31,9 @@ Data:
   30 suburbs (the original 28-suburb corridor plus Kuluin and Forest Glen).
 - `src/data/street-days.json` — the days each suburb's streets are being
   booked. **The owner edits this by hand.** Empty = `[NEXT DATES]` shows.
-- `src/data/placeholders.ts` — every visible `[PLACEHOLDER]`.
+- `src/data/placeholders.ts` — every `[PLACEHOLDER]`. Visible in `next dev`;
+  left off the page in production builds until filled (check `isShown()`
+  before wrapping one in a list item or paragraph).
 
 ## Business facts (use these in copy — never invent others)
 

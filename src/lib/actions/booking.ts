@@ -4,7 +4,7 @@ import { BUSINESS } from "@/data/business";
 import { quote, type PriceLine } from "@/data/pricing";
 import { getSuburb } from "@/data/suburbs";
 import { logEvent } from "./events";
-import { sendBookingEmails } from "@/lib/email";
+import { sendBookingEmails, sendLeadAlert } from "@/lib/email";
 import { CAPACITY_PER_DAY } from "@/lib/street-days";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import type { BookingStatus, Json } from "@/lib/supabase/types";
@@ -149,6 +149,16 @@ async function saveEnquiry(formData: FormData): Promise<BookingState> {
   } catch {
     return { status: "error", errors: { form: GENERIC_FAILURE } };
   }
+
+  // The form promises "we'll call you", so the owner has to hear about it.
+  await sendLeadAlert({
+    kind: "out_of_area",
+    name: parsed.data.name,
+    phone: parsed.data.phone,
+    suburb: parsed.data.suburb,
+    message: parsed.data.message,
+    source: parsed.data.source_code,
+  });
 
   await logEvent({
     type: "lead_out_of_area",

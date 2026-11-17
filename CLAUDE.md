@@ -63,10 +63,11 @@ Data:
   certifications. Public liability will be in place before the first booked
   job — until the owner confirms it, the insurance line stays a placeholder.
   No re-wash guarantee (dropped by the owner).
-- Photos: real before/afters of our own work only. The four Buderim pairs
-  in `src/photos/` are ours. Services with no real pair yet (gutters,
-  windows, gutter guard) show a placeholder slot; add pairs in
-  `src/data/site.ts` tagged with their `service` as jobs are done.
+- Photos: real before/afters of our own work only. Six Buderim pairs in
+  `src/photos/`: house-wash ×2, driveway, fences, gutter-clean, gutter-guard.
+  Only windows has no real pair yet (shows a placeholder slot). Add pairs in
+  `src/data/site.ts` tagged with their `service` as jobs are done. Source
+  PNGs go in `photos-src/`; `npm run photos` processes them to 4:3 WebP.
 - Tone: plain, friendly, confident, short sentences, about the customer's
   house. No hype words ("premium", "elite", "unbeatable").
 
@@ -146,7 +147,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=      # server only
 RESEND_API_KEY=
 ADMIN_EMAIL=                    # owner's email for booking alerts
-NEXT_PUBLIC_SITE_URL=https://[DOMAIN]
+NEXT_PUBLIC_SITE_URL=https://washboys.com.au
 QUOTE_ENGINE_URL=               # Phase 2 — leave empty for now
 ```
 

@@ -53,8 +53,4 @@ export const FAQ: readonly FaqItem[] = [
     q: "How long does gutter guard last?",
     a: PLACEHOLDERS.gutterGuardFaq,
   },
-  {
-    q: "Are you insured?",
-    a: PLACEHOLDERS.insuranceFaq,
-  },
 ];

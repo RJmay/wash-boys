@@ -10,7 +10,7 @@ import {
   WHY_US,
 } from "@/data/copy";
 import { FAQ } from "@/data/faq";
-import { isFilled, isShown, PLACEHOLDERS, SHOW_PLACEHOLDERS } from "@/data/placeholders";
+import { isShown } from "@/data/placeholders";
 import {
   BUNDLES,
   DEPOSITS,
@@ -160,39 +160,23 @@ export function OfferCard() {
 
 // ── Proof ─────────────────────────────────────────────────────────────────
 
-const PHOTO_PLACEHOLDER: Partial<Record<PhotoService, string>> = {
-  "gutter-clean": PLACEHOLDERS.gutterPhoto,
-  windows: PLACEHOLDERS.windowsPhoto,
-  "gutter-guard": PLACEHOLDERS.gutterGuardPhoto,
-};
-
-/** Dashed slot where a real before-and-after will go. Development only. */
-function PhotoPlaceholder({ service }: { service: PhotoService }) {
-  return (
-    <div className="flex aspect-4/3 items-center justify-center rounded-xl border-2 border-dashed border-line-strong bg-concrete p-4 text-center text-sm text-ink-muted">
-      <Placeholder value={PHOTO_PLACEHOLDER[service] ?? "[PLACEHOLDER: photo]"} />
-    </div>
-  );
-}
-
 /**
- * Real before-and-afters, one per service. A service without a real pair yet
- * shows its placeholder while developing and is left out of production
- * builds; with no slots left the whole section goes. Add pairs in
- * src/data/site.ts.
+ * Real before-and-afters, one per service. A service without a real pair is
+ * simply left out, in every build; with none left the whole section goes.
+ * Add pairs in src/data/site.ts.
  *
  * An odd number of photos would leave a hole in the grid, so the last cell
  * becomes the booking prompt instead.
  */
 export function RecentWork({
-  services = ["house-wash", "driveway", "gutter-clean", "windows", "fences"],
+  services = ["house-wash", "driveway", "gutter-clean", "fences"],
   tone = "grey",
 }: {
   services?: PhotoService[];
   tone?: Tone;
 }) {
-  const slots = PHOTO_SLOTS.filter((s) => services.includes(s.service)).filter(
-    (s) => SHOW_PLACEHOLDERS || pairsFor(s.service).length > 0,
+  const slots = PHOTO_SLOTS.filter(
+    (s) => services.includes(s.service) && pairsFor(s.service).length > 0,
   );
   if (slots.length === 0) return null;
   return (
@@ -204,21 +188,11 @@ export function RecentWork({
         lead="Our own work, not stock photos. Drag the handle to compare."
       />
       <ul className="mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2">
-        {slots.map((slot) => {
-          const pair = pairsFor(slot.service)[0];
-          return (
-            <li key={slot.service}>
-              {pair ? (
-                <BeforeAfterSlider pair={pair} title={slot.label} />
-              ) : (
-                <>
-                  <PhotoPlaceholder service={slot.service} />
-                  <p className="mt-3 font-semibold text-ink">{slot.label}</p>
-                </>
-              )}
-            </li>
-          );
-        })}
+        {slots.map((slot) => (
+          <li key={slot.service}>
+            <BeforeAfterSlider pair={pairsFor(slot.service)[0]} title={slot.label} />
+          </li>
+        ))}
         {slots.length % 2 === 1 ? (
           <li className="hidden sm:block">
             <Link
@@ -242,8 +216,7 @@ export function RecentWork({
 
 /**
  * One service's before-and-afters beside a short explanation. Used on the
- * service and gutter guard pages. Left out of production builds until a real
- * pair exists.
+ * service and gutter guard pages. Left out entirely until a real pair exists.
  */
 export function ServiceWork({
   service,
@@ -257,7 +230,7 @@ export function ServiceWork({
   children?: ReactNode;
 }) {
   const pairs = pairsFor(service);
-  if (pairs.length === 0 && !SHOW_PLACEHOLDERS) return null;
+  if (pairs.length === 0) return null;
   return (
     <Section labelledBy="work-heading" tone={tone}>
       <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:items-center lg:gap-16">
@@ -266,26 +239,18 @@ export function ServiceWork({
             id="work-heading"
             eyebrow="Recent work"
             title="Before and after"
-            lead={
-              pairs[0]
-                ? `${name}${pairs[0].suburb ? ` in ${pairs[0].suburb}` : ""}. Our own work, not a stock photo. Drag the handle to compare.`
-                : undefined
-            }
+            lead={`${name}${pairs[0].suburb ? ` in ${pairs[0].suburb}` : ""}. Our own work, not a stock photo. Drag the handle to compare.`}
           />
           {children}
         </div>
         <div className={`grid gap-8 ${pairs.length > 1 ? "sm:grid-cols-2" : ""}`}>
-          {pairs.length > 0 ? (
-            pairs.map((pair) => (
-              <BeforeAfterSlider
-                key={pair.alt}
-                pair={pair}
-                sizes={pairs.length > 1 ? "(min-width: 640px) 50vw, 100vw" : "(min-width: 1024px) 720px, 100vw"}
-              />
-            ))
-          ) : (
-            <PhotoPlaceholder service={service} />
-          )}
+          {pairs.map((pair) => (
+            <BeforeAfterSlider
+              key={pair.alt}
+              pair={pair}
+              sizes={pairs.length > 1 ? "(min-width: 640px) 50vw, 100vw" : "(min-width: 1024px) 720px, 100vw"}
+            />
+          ))}
         </div>
       </div>
     </Section>
@@ -328,7 +293,7 @@ export function HowItWorksSteps({
   );
 }
 
-/** Why book us: the brief's positioning, plus insurance and reviews once true. */
+/** Why book us: the brief's positioning, plus real reviews once there are any. */
 export function WhyUs({ tone = "grey" }: { tone?: Tone }) {
   return (
     <Section labelledBy="why-heading" tone={tone}>
@@ -341,23 +306,6 @@ export function WhyUs({ tone = "grey" }: { tone?: Tone }) {
           </li>
         ))}
       </ul>
-      {isFilled(PLACEHOLDERS.insurance) ? (
-        <TickList items={[PLACEHOLDERS.insurance]} className="mt-6 text-ink" />
-      ) : null}
-      {SHOW_PLACEHOLDERS ? (
-        <ul className="mt-6 grid gap-2.5 text-sm text-ink-muted">
-          {isFilled(PLACEHOLDERS.insurance) ? null : (
-            <li>
-              <Placeholder value={PLACEHOLDERS.insurance} />
-            </li>
-          )}
-          {reviews.length === 0 ? (
-            <li>
-              <Placeholder value={PLACEHOLDERS.reviews} />
-            </li>
-          ) : null}
-        </ul>
-      ) : null}
       {reviews.length > 0 ? (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2">
           {reviews.map((review) => (

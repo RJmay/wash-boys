@@ -46,8 +46,8 @@ Buderim, Little Mountain, Aroona, Mountain Creek, Currimundi, Pelican Waters and
 - Why it's cheaper. We already deliver to your street, and we book whole streets on the same days, so there's no travel cost to pass on.
 - Local and accountable. Two locals, the same two people on every job.
 - Careful with your home. Soft wash on painted surfaces, not high pressure. Wash water kept out of the street drains.
-- `[PLACEHOLDER: insurance line once cover is in place]`
-- `[PLACEHOLDER: reviews once we have them]`
+
+Insurance and reviews: nothing shown until they're real (placeholders removed 17 Nov 2026). Add the wording here when cover is in place and reviews come in.
 
 **Closing** (every page ends with this, Nov 2026)
 
@@ -172,7 +172,7 @@ Then the bundle card, the services list, How it works, and the Book button.
 
 **How long does gutter guard last?** `[PLACEHOLDER: supplier warranty]`
 
-**Are you insured?** `[PLACEHOLDER: answer once cover is in place]`
+(**Are you insured?** removed for now, 17 Nov 2026. Add it back with the answer once cover is in place.)
 
 ---
 

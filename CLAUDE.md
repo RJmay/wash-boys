@@ -61,13 +61,16 @@ Data:
 - **Must not claim until true:** reviews or star ratings, years of
   experience, "fully insured" or any cover amount, licences or
   certifications. Public liability will be in place before the first booked
-  job — until the owner confirms it, the insurance line stays a placeholder.
-  No re-wash guarantee (dropped by the owner).
+  job. Insurance and reviews have no placeholders (owner removed them,
+  17 Nov 2026): say nothing about either until the owner supplies the real
+  wording, then add it. No re-wash guarantee (dropped by the owner).
 - Photos: real before/afters of our own work only. Six Buderim pairs in
   `src/photos/`: house-wash ×2, driveway, fences, gutter-clean, gutter-guard.
-  Only windows has no real pair yet (shows a placeholder slot). Add pairs in
+  No window photos, and no window slot (owner's call, 17 Nov 2026). A
+  service with no pair shows nothing, never a placeholder. Add pairs in
   `src/data/site.ts` tagged with their `service` as jobs are done. Source
-  PNGs go in `photos-src/`; `npm run photos` processes them to 4:3 WebP.
+  PNGs go in `photos-src/`; `npm run photos` processes them to 4:3 WebP
+  (`TRIM` in the script crops off captions burned into a shot).
 - Tone: plain, friendly, confident, short sentences, about the customer's
   house. No hype words ("premium", "elite", "unbeatable").
 

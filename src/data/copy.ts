@@ -56,7 +56,7 @@ export const HOW_IT_WORKS_FULL: readonly { title: string; body: string }[] = [
 
 /**
  * "Why book us", from the positioning in docs/brief/business-brief.md. Only
- * what is true today: insurance and reviews live in PLACEHOLDERS until real.
+ * what is true today: insurance and reviews are added once the owner has them.
  */
 export const WHY_US: readonly { title: string; body: string }[] = [
   {

@@ -93,9 +93,10 @@ from `src/data/pricing.json` via `src/data/pricing.ts`.
   `service-areas.json` where there is one, else the suburb's hook.
   "We're booking [suburb] streets on:" reads `src/data/street-days.json`
   and shows `[NEXT DATES]` when empty.
-- **Placeholders:** every claim not yet true (insurance, reviews, warranty,
-  bank details, missing photos, FAQ answers) lives in
-  `src/data/placeholders.ts`. In `next dev` each renders visibly in a dashed
+- **Placeholders:** owner inputs still to come (warranty wording, bank
+  details, FAQ answers) live in `src/data/placeholders.ts`. Insurance and
+  reviews have none: they are left off entirely until real (owner's call,
+  17 Nov 2026). In `next dev` each renders visibly in a dashed
   box until filled. In a production build an unfilled one is left off the
   page (its list item, FAQ question or photo slot goes with it), and an
   empty suburb's street-days line says the day is confirmed by phone. Buyers
@@ -109,7 +110,8 @@ from `src/data/pricing.json` via `src/data/pricing.ts`.
   the owner and logs `callback_req`. The header and footer carry a text link
   beside the phone (`text_tap`).
 - **Photos:** real pairs only, tagged by service in `src/data/site.ts`.
-  A service with no pair shows its placeholder slot.
+  A service with no pair shows nothing. No window photos for now (owner's
+  call, 17 Nov 2026).
 
 ## 5. Booking (`/book`)
 

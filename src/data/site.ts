@@ -18,8 +18,7 @@ import houseWashBefore from "@/photos/house-wash-before.webp";
  *
  * The hard rule behind all of this (CLAUDE.md, SPEC §2): real photos of our
  * own work only. No stock before/afters, no borrowed reviews. A service with
- * no real pair yet (gutters, windows, gutter guard) shows a visible
- * placeholder instead of a fake one.
+ * no real pair simply has no photo on the site.
  */
 
 /**
@@ -75,7 +74,7 @@ export type BeforeAfterPair = {
  */
 export const USE_PLACEHOLDER_MEDIA = false;
 
-/** Which service a photo pair proves. Slots with no pair show a placeholder. */
+/** Which service a photo pair proves. */
 export type PhotoService = "house-wash" | "driveway" | "gutter-clean" | "windows" | "fences" | "gutter-guard";
 
 /**
@@ -158,14 +157,13 @@ const PAIRS = USE_PLACEHOLDER_MEDIA ? PLACEHOLDER_PAIRS : REAL_PAIRS;
 
 /**
  * "Recent work" slots, one per service, in the order the site sells them.
- * Add a real pair to REAL_PAIRS with its `service` and it replaces the
- * placeholder for that slot automatically - no component changes.
+ * A slot shows only once REAL_PAIRS has a pair with its `service`. No
+ * windows slot: the owner does not want window photos on the site for now.
  */
 export const PHOTO_SLOTS: readonly { service: PhotoService; label: string }[] = [
   { service: "house-wash", label: "House soft wash" },
   { service: "driveway", label: "Driveway and paths" },
   { service: "gutter-clean", label: "Gutter clean" },
-  { service: "windows", label: "Exterior windows" },
   { service: "fences", label: "Fences" },
   { service: "gutter-guard", label: "Gutter guard" },
 ];
@@ -180,5 +178,5 @@ export type Review = {
   suburb: string;
 };
 
-/** Real reviews only, pasted in as they land. Empty = placeholder shows. */
+/** Real reviews only, pasted in as they land. Empty = nothing shows. */
 export const reviews: readonly Review[] = [];

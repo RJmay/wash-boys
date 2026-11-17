@@ -36,7 +36,7 @@ export const HOW_IT_WORKS_SHORT: readonly { title: string; body: string }[] = [
     body: "One on the gutters and windows, one on the wash and driveway.",
   },
   {
-    title: "Done in about three hours.",
+    title: "Done in four to five hours.",
     body: "You get before-and-after photos and pay the balance.",
   },
 ];

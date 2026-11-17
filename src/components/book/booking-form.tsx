@@ -22,6 +22,7 @@ import {
   formatPrice,
   GUTTER_GUARD,
   includesGutterGuard,
+  itemName,
   packageLength,
   quote,
   servicePriceLabel,
@@ -55,6 +56,25 @@ function packagePrice(choice: PackageChoice): string {
   if (choice === "gutter-guard") return `from ${formatPrice(GUTTER_GUARD.packages[0].price)}`;
   if (choice === "single") return `from ${formatPrice(Math.min(...SERVICES_PRICED.map((s) => s.price)))}`;
   return formatPrice(BUNDLES.find((b) => b.id === choice)?.price ?? 0);
+}
+
+/**
+ * What a bundle actually is, under its name. A visitor straight off a flyer QR
+ * can land here without having seen the pricing page, and "Full Exterior" on
+ * its own does not say it is gutter guard plus the wash.
+ */
+function bundleDetail(choice: PackageChoice): string | undefined {
+  const bundle = BUNDLES.find((b) => b.id === choice);
+  if (!bundle) return undefined;
+  const items = bundle.includes.map((id, i) => {
+    const pkg = GUTTER_GUARD.packages.find((p) => p.id === id);
+    const name = pkg
+      ? `${pkg.name} gutter guard fitted (${packageLength(pkg)})${GUTTER_GUARD.includesGutterClean ? " with a gutter clean" : ""}`
+      : itemName(id);
+    return i === 0 ? name : name.charAt(0).toLowerCase() + name.slice(1);
+  });
+  const saving = bundle.saving ? ` Save ${formatPrice(bundle.saving)}.` : "";
+  return `${items.join(", ")}.${saving}`;
 }
 
 /**
@@ -227,6 +247,7 @@ export function BookingForm({
               checked={choice === value}
               onChange={() => setChoice(value)}
               aside={packagePrice(value)}
+              detail={bundleDetail(value)}
             >
               {PACKAGE_LABELS[value]}
             </Choice>
@@ -737,6 +758,7 @@ function Choice({
   onChange,
   required,
   aside,
+  detail,
   children,
 }: {
   type?: "radio" | "checkbox";
@@ -746,6 +768,8 @@ function Choice({
   onChange?: () => void;
   required?: boolean;
   aside?: string;
+  /** A muted line under the label, e.g. what a bundle includes. */
+  detail?: string;
   children: ReactNode;
 }) {
   return (
@@ -759,7 +783,10 @@ function Choice({
         required={required}
         className="size-5 shrink-0 accent-[#123c52]"
       />
-      <span className="flex-1 font-semibold text-ink">{children}</span>
+      <span className="flex-1">
+        <span className="block font-semibold text-ink">{children}</span>
+        {detail ? <span className="mt-0.5 block text-sm text-ink-muted">{detail}</span> : null}
+      </span>
       {aside ? <span className="shrink-0 text-sm font-semibold text-harbour">{aside}</span> : null}
     </label>
   );

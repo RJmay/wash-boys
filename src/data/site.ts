@@ -4,6 +4,10 @@ import drivewayAfter from "@/photos/driveway-after.webp";
 import drivewayBefore from "@/photos/driveway-before.webp";
 import fenceCleanAfter from "@/photos/fence-clean-after.webp";
 import fenceCleanBefore from "@/photos/fence-clean-before.webp";
+import gutterCleaningAfter from "@/photos/gutter-cleaning-after.webp";
+import gutterCleaningBefore from "@/photos/gutter-cleaning-before.webp";
+import gutterGuardAfter from "@/photos/gutter-guard-after.webp";
+import gutterGuardBefore from "@/photos/gutter-guard-before.webp";
 import houseSideAfter from "@/photos/house-side-after.webp";
 import houseSideBefore from "@/photos/house-side-before.webp";
 import houseWashAfter from "@/photos/house-wash-after.webp";
@@ -114,6 +118,20 @@ const REAL_PAIRS: readonly BeforeAfterPair[] = [
     alt: "Fence, before and after a clean",
     suburb: "Buderim",
     service: "fences",
+  },
+  {
+    before: gutterCleaningBefore,
+    after: gutterCleaningAfter,
+    alt: "Gutters, before and after a clean",
+    suburb: "Buderim",
+    service: "gutter-clean",
+  },
+  {
+    before: gutterGuardBefore,
+    after: gutterGuardAfter,
+    alt: "Gutters, before and after gutter guard installation",
+    suburb: "Buderim",
+    service: "gutter-guard",
   },
 ];
 

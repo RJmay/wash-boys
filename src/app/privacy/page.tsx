@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { PageShell } from "@/components/site/chrome";
-import { Section, SectionHeading } from "@/components/site/ui";
+import { PageHeader, Section } from "@/components/site/ui";
 import { BUSINESS } from "@/data/business";
 
 export const metadata: Metadata = {
@@ -72,33 +72,29 @@ export default function PrivacyPage() {
 
   return (
     <PageShell>
-        <Section labelledBy="privacy-heading">
-          <SectionHeading id="privacy-heading">Privacy</SectionHeading>
-          <p className="mt-3 text-ink-muted">
-            {BUSINESS.name}, ABN {BUSINESS.abn}. This explains what we do with
-            the details you give us when you book.
-          </p>
-
-          <div className="mt-6 space-y-6">
-            {sections.map((section) => (
-              <section key={section.heading}>
-                <h2 className="text-sm font-semibold tracking-wide text-harbour uppercase">
-                  {section.heading}
-                </h2>
-                {section.body.map((para) => (
-                  <p key={para} className="mt-2 text-ink-muted">
-                    {para}
-                  </p>
-                ))}
-              </section>
-            ))}
-          </div>
-
-          <p className="mt-8 border-t border-line pt-5 text-sm text-ink-muted">
+      <PageHeader
+        eyebrow={`${BUSINESS.name}, ABN ${BUSINESS.abn}`}
+        title="Privacy"
+        lead={<p>What we do with the details you give us when you book.</p>}
+      />
+      <Section tone="white">
+        <div className="max-w-3xl space-y-10">
+          {sections.map((section) => (
+            <section key={section.heading}>
+              <h2 className="display-caps text-2xl text-harbour">{section.heading}</h2>
+              {section.body.map((para) => (
+                <p key={para} className="mt-3 text-ink-muted">
+                  {para}
+                </p>
+              ))}
+            </section>
+          ))}
+          <p className="border-t border-line pt-6 text-ink-muted">
             Questions about any of this? Call {BUSINESS.phone.display} or email{" "}
             {BUSINESS.email}.
           </p>
-        </Section>
+        </div>
+      </Section>
     </PageShell>
   );
 }

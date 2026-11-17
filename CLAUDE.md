@@ -106,6 +106,13 @@ website since the relaunch (see SPEC.md §10).
   starts and bookings are logged events carrying the `?src=` code.
 - Accessibility floor: visible focus states, labels on all inputs, contrast
   AA, reduced motion respected.
+- Layout system (Nov 2026 redesign), in `src/components/site/ui.tsx`: every
+  page is a `PageHeader` (or `Hero` on home and suburb pages), then
+  `Section`s with a `SectionHeader`, alternating `tone` white/grey (dark for
+  one feature band), ending with `<Closing />` (book or talk). Width is
+  `container` (max-w-6xl); desktop uses two columns, phones stack. Build new
+  pages from these rather than one-off markup, and check both 375px and
+  1440px.
 
 ## Directory map
 
@@ -166,6 +173,8 @@ Aroona then Buderim from mid-November 2026. Outstanding owner inputs are the
 placeholders in `src/data/placeholders.ts` and the dates in
 `src/data/street-days.json`. The DL flyer template still shows the old
 services and needs redesigning around the Exterior Refresh before printing.
+
+<!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know
 

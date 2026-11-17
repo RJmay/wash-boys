@@ -1,20 +1,19 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PageShell } from "@/components/site/chrome";
 import { StreetDaysLine } from "@/components/site/next-dates";
 import {
-  BookBand,
   BundleCards,
+  Closing,
   DoubleStoreyNote,
   Hero,
   HowItWorksSteps,
+  NearYou,
   PriceTag,
   ServicePriceList,
-  TalkFirst,
 } from "@/components/site/sections";
-import { Section, SectionHeading } from "@/components/site/ui";
+import { Section, SectionHeader } from "@/components/site/ui";
 import { formatPrice, HEADLINE_BUNDLE } from "@/data/pricing";
 import { SERVICE_PAGES } from "@/data/services";
 import { getSuburb, SUBURBS } from "@/data/suburbs";
@@ -25,7 +24,6 @@ import { upcomingDays } from "@/lib/street-days";
 export function generateStaticParams() {
   return SUBURBS.map((s) => ({ suburb: s.slug }));
 }
-
 
 export async function generateMetadata({
   params,
@@ -46,8 +44,8 @@ export async function generateMetadata({
  *
  * Targets "house washing / pressure cleaning / gutter cleaning / gutter guard
  * [suburb]". The $790 and the Book button sit above the fold on a phone, so
- * the price line comes straight after the heading and the blurb follows the
- * button rather than preceding it.
+ * the price line comes straight after the heading and the suburb's own copy
+ * follows the hero rather than preceding the button.
  */
 export default async function AreaPage({
   params,
@@ -77,7 +75,7 @@ export default async function AreaPage({
       <Hero
         eyebrow={`${suburb.name} ${suburb.postcode}`}
         heading={`House washing and gutter cleaning in ${suburb.name}`}
-        headingClassName="text-section"
+        headingClassName="text-section sm:text-[2.75rem] lg:text-[3.25rem] lg:leading-none"
         bookHref={bookHref}
       >
         <p className="text-lg text-white/90">
@@ -89,65 +87,51 @@ export default async function AreaPage({
         </p>
       </Hero>
 
-      <Section labelledBy="local" className="bg-surface">
-        <h2 id="local" className="sr-only">
-          {suburb.name}
-        </h2>
-        <p className="text-lg text-ink">{copy.intro}</p>
-        {copy.local ? <p className="mt-3 text-ink-muted">{copy.local}</p> : null}
+      <Section labelledBy="local-heading" tone="white">
+        <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
+          <div>
+            <h2 id="local-heading" className="eyebrow mb-3 text-harbour">
+              {suburb.name}
+            </h2>
+            <p className="text-2xl leading-snug font-semibold text-ink sm:text-3xl">{copy.intro}</p>
+            {copy.local ? <p className="mt-4 text-lg text-ink-muted">{copy.local}</p> : null}
+          </div>
+          <div>
+            <h3 className="display-caps text-2xl text-harbour">What we see in {suburb.name}</h3>
+            {copy.because.map((line) => (
+              <p key={line} className="mt-4 text-ink-muted">
+                {line}
+              </p>
+            ))}
+            <p className="mt-4 text-ink-muted">{copy.logistics}</p>
+          </div>
+        </div>
       </Section>
 
-      <Section labelledBy="bundle">
-        <SectionHeading id="bundle">The {HEADLINE_BUNDLE.name}</SectionHeading>
+      <Section labelledBy="prices-heading" tone="grey">
+        <SectionHeader id="prices-heading" eyebrow="Prices" title={`Prices in ${suburb.name}`} />
         <BundleCards ids={["exterior-refresh", "full-exterior"]} />
+        <div className="mt-14 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-16">
+          <div>
+            <h3 className="display-caps text-2xl text-harbour">Single services</h3>
+            <p className="mt-3 text-ink-muted">Book any one on its own.</p>
+            <DoubleStoreyNote />
+          </div>
+          <ServicePriceList suburbName={suburb.name} />
+        </div>
       </Section>
 
-      <Section labelledBy="services" className="bg-surface">
-        <SectionHeading id="services">Services in {suburb.name}</SectionHeading>
-        <ServicePriceList suburbName={suburb.name} />
-        <DoubleStoreyNote />
-      </Section>
-
-      <Section labelledBy="why">
-        <SectionHeading id="why">What we see in {suburb.name}</SectionHeading>
-        {copy.because.map((line) => (
-          <p key={line} className="mt-3 text-ink-muted">
-            {line}
-          </p>
-        ))}
-        <p className="mt-3 text-ink-muted">{copy.logistics}</p>
-      </Section>
-
-      <HowItWorksSteps className="bg-surface" />
+      <HowItWorksSteps tone="white" />
 
       {copy.neighbours.length > 0 ? (
-        <Section labelledBy="nearby">
-          <SectionHeading id="nearby">Nearby</SectionHeading>
-          <ul className="mt-4 flex flex-wrap gap-2">
-            {copy.neighbours.map((n) => (
-              <li key={n.slug}>
-                <Link
-                  href={`/areas/${n.slug}`}
-                  className="inline-block rounded-full border border-line bg-surface px-3 py-1 text-sm text-ink hover:border-harbour/50"
-                >
-                  {n.name}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link
-                href="/areas"
-                className="inline-block rounded-full border border-harbour px-3 py-1 text-sm font-semibold text-harbour"
-              >
-                All suburbs
-              </Link>
-            </li>
-          </ul>
-        </Section>
+        <NearYou title={`Near ${suburb.name}`} suburbs={copy.neighbours} tone="grey" />
       ) : null}
 
-      <BookBand href={bookHref} label={`Book in ${suburb.name}`} />
-      <TalkFirst />
+      <Closing
+        href={bookHref}
+        label={`Book in ${suburb.name}`}
+        tone={copy.neighbours.length > 0 ? "white" : "grey"}
+      />
     </PageShell>
   );
 }

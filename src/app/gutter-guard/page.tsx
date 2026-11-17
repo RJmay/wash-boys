@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PageShell } from "@/components/site/chrome";
-import { BookBand, GutterGuardTable, RecentWork, TalkFirst } from "@/components/site/sections";
-import { cta, Placeholder, Section, SectionHeading, TickList } from "@/components/site/ui";
+import { Closing, GutterGuardTable, NearYou, ServiceWork } from "@/components/site/sections";
+import { cta, PageHeader, Placeholder, Section, SectionHeader, TickList } from "@/components/site/ui";
 import { isShown, PLACEHOLDERS } from "@/data/placeholders";
 import {
   DOUBLE_STOREY,
@@ -12,7 +12,6 @@ import {
   GUTTER_GUARD_FROM,
   packageLength,
 } from "@/data/pricing";
-import { PRIORITY_SUBURBS } from "@/data/suburbs";
 import { JsonLd, serviceSchema } from "@/lib/schema";
 
 export const metadata: Metadata = {
@@ -39,73 +38,72 @@ export default function GutterGuardPage() {
     <PageShell>
       <JsonLd data={serviceSchema("gutter-guard")} />
 
-      <section className="on-dark bg-harbour px-5 pt-8 pb-10 text-white">
-        <div className="mx-auto w-full max-w-2xl">
-          <h1 className="display-caps text-hero text-balance">Never clean your gutters again.</h1>
-          <p className="mt-4 max-w-prose text-white/85">
+      <PageHeader
+        eyebrow="Gutter guard"
+        title="Never clean your gutters again."
+        lead={
+          <p>
             Aluminium mesh gutter guard, fitted to your gutters and valleys, with a gutter clean
             first. Fixed price by gutter length, no sales visit.
           </p>
-          <p className="mt-4 font-display text-price text-hivis">
-            from {formatPrice(GUTTER_GUARD_FROM)}
-          </p>
-          <div className="mt-6">
-            <Link href="/book?package=gutter-guard" className={cta}>
-              Book gutter guard
-            </Link>
+        }
+        aside={
+          <div className="rounded-2xl bg-surface p-6 text-ink sm:p-8">
+            <h2 className="eyebrow text-harbour">What&apos;s included</h2>
+            <TickList items={INCLUDED} className="mt-4" />
+            {isShown(PLACEHOLDERS.gutterGuardWarranty) ? (
+              <p className="mt-6 border-t border-line pt-5 text-sm text-ink-muted">
+                <Placeholder value={PLACEHOLDERS.gutterGuardWarranty} />
+              </p>
+            ) : null}
+          </div>
+        }
+      >
+        <p className="font-display text-price text-hivis">from {formatPrice(GUTTER_GUARD_FROM)}</p>
+        <div className="pt-2">
+          <Link href="/book?package=gutter-guard" className={cta}>
+            Book gutter guard
+          </Link>
+        </div>
+      </PageHeader>
+
+      <Section labelledBy="packages-heading" tone="white">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:gap-16">
+          <div>
+            <SectionHeader
+              id="packages-heading"
+              eyebrow="Packages"
+              title="Priced by gutter length"
+              lead={
+                <>
+                  Not sure of your gutter length? Most single-storey 3 to 4 bedroom homes are{" "}
+                  {medium ? `${medium.name} (${packageLength(medium)})` : "Medium"}. Book and
+                  we&apos;ll confirm with a quick phone measure.
+                </>
+              }
+            />
+          </div>
+          <div>
+            <GutterGuardTable />
+            <p className="mt-4 text-sm text-ink-muted">
+              Valleys {formatPrice(GUTTER_GUARD.valleyEach)} each. Double-storey +
+              {formatPrice(DOUBLE_STOREY.gutterGuard)}. Bigger homes: we&apos;ll quote by phone.
+            </p>
           </div>
         </div>
-      </section>
-
-      <Section labelledBy="packages" className="bg-surface">
-        <SectionHeading id="packages">Packages</SectionHeading>
-        <GutterGuardTable />
-        <p className="mt-4 text-sm text-ink-muted">
-          Valleys {formatPrice(GUTTER_GUARD.valleyEach)} each. Double-storey +
-          {formatPrice(DOUBLE_STOREY.gutterGuard)}. Bigger homes: we&apos;ll quote by phone.
-        </p>
-        <p className="mt-3 text-ink-muted">
-          Not sure of your gutter length? Most single-storey 3 to 4 bedroom homes are{" "}
-          {medium ? `${medium.name} (${packageLength(medium)})` : "Medium"}. Book and we&apos;ll
-          confirm with a quick phone measure.
-        </p>
       </Section>
 
-      <Section labelledBy="included">
-        <SectionHeading id="included">What&apos;s included</SectionHeading>
-        <TickList items={INCLUDED} className="mt-5 text-ink" />
-        {isShown(PLACEHOLDERS.gutterGuardWarranty) ? (
-          <p className="mt-5 text-sm text-ink-muted">
-            <Placeholder value={PLACEHOLDERS.gutterGuardWarranty} />
-          </p>
-        ) : null}
-      </Section>
+      <ServiceWork service="gutter-guard" name="Gutter guard fitted" tone="grey" />
 
-      <RecentWork only={["gutter-guard"]} />
+      <NearYou title="Gutter guard near you" prefix="gutter guard" tone="white" />
 
-      <Section labelledBy="where">
-        <SectionHeading id="where">Gutter guard near you</SectionHeading>
-        <ul className="mt-4 flex flex-wrap gap-2">
-          {PRIORITY_SUBURBS.map((s) => (
-            <li key={s.slug}>
-              <Link
-                href={`/areas/${s.slug}`}
-                className="inline-block rounded-full border border-line bg-surface px-3 py-1 text-sm text-ink hover:border-harbour/50"
-              >
-                gutter guard {s.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </Section>
-
-      <BookBand
+      <Closing
         title="Book gutter guard"
         body="Pick your day and pay the deposit. We confirm your gutter length by phone before the day."
         href="/book?package=gutter-guard"
         label="Book gutter guard"
+        tone="grey"
       />
-      <TalkFirst />
     </PageShell>
   );
 }

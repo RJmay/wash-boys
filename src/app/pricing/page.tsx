@@ -2,15 +2,20 @@ import type { Metadata } from "next";
 
 import { PageShell } from "@/components/site/chrome";
 import {
-  BookBand,
   BundleCards,
-  DoubleStoreyNote,
+  Closing,
   GutterGuardTable,
-  PriceTableNote,
   ServicePriceList,
 } from "@/components/site/sections";
-import { Section, SectionHeading } from "@/components/site/ui";
-import { DEPOSITS, formatPrice, GUTTER_GUARD, HEADLINE_BUNDLE } from "@/data/pricing";
+import { card, PageHeader, Section, SectionHeader } from "@/components/site/ui";
+import { PRICE_TABLE_NOTE } from "@/data/copy";
+import {
+  DEPOSITS,
+  DOUBLE_STOREY,
+  formatPrice,
+  GUTTER_GUARD,
+  HEADLINE_BUNDLE,
+} from "@/data/pricing";
 
 export const metadata: Metadata = {
   title: "Bundles and Pricing",
@@ -18,41 +23,72 @@ export const metadata: Metadata = {
   alternates: { canonical: "/pricing" },
 };
 
-/** Bundles first as large cards, then single services, then surcharges. */
+/** Bundles first as large cards, then single services and gutter guard, then extras. */
 export default function PricingPage() {
   return (
     <PageShell>
-      <Section labelledBy="pricing-heading">
-        <h1 id="pricing-heading" className="display-caps text-hero text-harbour">
-          Bundles and pricing
-        </h1>
+      <PageHeader
+        eyebrow="Every price, up front"
+        title="Bundles and pricing"
+        lead={<p>{PRICE_TABLE_NOTE}</p>}
+      />
+
+      <Section labelledBy="bundles-heading" tone="grey">
+        <SectionHeader
+          id="bundles-heading"
+          eyebrow="Bundles"
+          title="Save when you bundle"
+        />
         <BundleCards />
       </Section>
 
-      <Section labelledBy="singles" className="bg-surface">
-        <SectionHeading id="singles">Single services</SectionHeading>
-        <ServicePriceList />
+      <Section labelledBy="singles-heading" tone="white">
+        <div className="grid gap-14 lg:grid-cols-2 lg:gap-16">
+          <div>
+            <SectionHeader id="singles-heading" eyebrow="Single services" title="One thing at a time" />
+            <div className="mt-8">
+              <ServicePriceList />
+            </div>
+          </div>
+          <div>
+            <SectionHeader eyebrow="Gutter guard" title="Fitted, by gutter length" />
+            <div className="mt-8">
+              <GutterGuardTable />
+            </div>
+            <p className="mt-4 text-sm text-ink-muted">
+              Valleys {formatPrice(GUTTER_GUARD.valleyEach)} each. {GUTTER_GUARD.overMaxNote}.
+            </p>
+          </div>
+        </div>
       </Section>
 
-      <Section labelledBy="gg">
-        <SectionHeading id="gg">Gutter guard</SectionHeading>
-        <GutterGuardTable />
-        <p className="mt-3 text-sm text-ink-muted">
-          Valleys {formatPrice(GUTTER_GUARD.valleyEach)} each. {GUTTER_GUARD.overMaxNote}.
-        </p>
+      <Section labelledBy="extras-heading" tone="grey">
+        <SectionHeader id="extras-heading" eyebrow="Good to know" title="Extras and deposits" />
+        <ul className="mt-10 grid gap-4 md:grid-cols-3">
+          <li className={card}>
+            <h3 className="font-semibold text-ink">Double-storey</h3>
+            <p className="mt-2 text-ink-muted">
+              +{formatPrice(DOUBLE_STOREY.washingAndWindows)} on washing and windows, +
+              {formatPrice(DOUBLE_STOREY.gutterGuard)} on gutter guard.
+            </p>
+          </li>
+          <li className={card}>
+            <h3 className="font-semibold text-ink">Deposit</h3>
+            <p className="mt-2 text-ink-muted">
+              {formatPrice(DEPOSITS.cleaning)} for cleaning, {formatPrice(DEPOSITS.gutterGuard)} for
+              gutter guard, by bank transfer to hold your day. The balance is invoiced after the job.
+            </p>
+          </li>
+          <li className={card}>
+            <h3 className="font-semibold text-ink">Not sure of your size?</h3>
+            <p className="mt-2 text-ink-muted">
+              Book anyway and we&apos;ll confirm by phone before the day.
+            </p>
+          </li>
+        </ul>
       </Section>
 
-      <Section labelledBy="extras" className="bg-surface">
-        <SectionHeading id="extras">Extras and deposits</SectionHeading>
-        <DoubleStoreyNote />
-        <p className="mt-3 text-sm text-ink-muted">
-          Deposit to hold your day: {formatPrice(DEPOSITS.cleaning)} for cleaning,{" "}
-          {formatPrice(DEPOSITS.gutterGuard)} for gutter guard. The balance is invoiced on the day.
-        </p>
-        <PriceTableNote />
-      </Section>
-
-      <BookBand />
+      <Closing tone="white" />
     </PageShell>
   );
 }

@@ -2,18 +2,17 @@ import type { Metadata } from "next";
 
 import { PageShell } from "@/components/site/chrome";
 import {
-  BookBand,
-  GutterGuardTeaser,
+  Closing,
+  FaqList,
+  GutterGuardFeature,
   Hero,
   HowItWorksSteps,
   JustGuttersLine,
   PriceTag,
   RecentWork,
-  RefreshIncludes,
   SingleServices,
-  TalkFirst,
-  TrustStrip,
   WhereWeWork,
+  WhyUs,
 } from "@/components/site/sections";
 import { formatPrice, HEADLINE_BUNDLE } from "@/data/pricing";
 
@@ -28,9 +27,11 @@ export const metadata: Metadata = {
 /**
  * Home (docs/brief/site-content.md, "Home").
  *
- * Fully static and text-led above the fold: the $790 and the Book button sit
- * inside the first screen on a 375px phone (brief point 6). Photos come
- * further down where they cannot push the offer off screen.
+ * Reads top to bottom as one argument: the offer and its price, proof it is
+ * real, how a day works, why us, the smaller options, where we go, then book
+ * or talk. The $790 and the Book button sit inside the first screen on a
+ * 375px phone (brief point 6); photos start below the hero where they cannot
+ * push the offer off screen.
  */
 export default function Home() {
   return (
@@ -44,16 +45,14 @@ export default function Home() {
           We already deliver to your street, so there&apos;s no call-out fee and no quote visit.
         </p>
       </Hero>
-      <RefreshIncludes />
-      {/* Proof straight after the offer: real jobs do more than any claim. */}
-      <RecentWork className="" />
-      <SingleServices className="bg-surface" />
-      <HowItWorksSteps />
-      <GutterGuardTeaser />
-      <WhereWeWork />
-      <TrustStrip />
-      <BookBand />
-      <TalkFirst />
+      <RecentWork tone="grey" />
+      <HowItWorksSteps tone="white" />
+      <WhyUs tone="grey" />
+      <SingleServices tone="white" />
+      <GutterGuardFeature />
+      <WhereWeWork tone="white" />
+      <FaqList limit={4} tone="grey" />
+      <Closing tone="white" />
     </PageShell>
   );
 }

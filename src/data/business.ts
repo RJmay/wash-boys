@@ -36,17 +36,6 @@ export const BUSINESS = {
   },
 
   /**
-   * Trust claims - only things that are true today (docs/brief/business-brief.md).
-   * No insurance, licence, years or review claims until they are real: those
-   * sit in PLACEHOLDERS and render as visible placeholders.
-   */
-  trust: {
-    team: "Local, two-person team, the same two people every job",
-    softWash: "Soft wash on painted surfaces, never blasted",
-    drains: "Wash water kept out of the street drains",
-  },
-
-  /**
    * Deposit by bank transfer. The booking reference goes in the transfer
    * description so the owner can match it on the statement.
    */

@@ -217,7 +217,7 @@ export function BookingForm({
 
   if (state.status === "enquiry") {
     return (
-      <div className="mt-6 rounded-xl border border-line bg-surface p-6">
+      <div className="max-w-2xl rounded-2xl border border-line bg-surface p-6 sm:p-8">
         <p className="display-caps text-section text-harbour">Thanks, we&apos;ll call you</p>
         <p className="mt-3 text-ink">
           We&apos;re not booking {state.suburb} streets yet. We have your details and will call
@@ -233,298 +233,309 @@ export function BookingForm({
   const busy = pending || preparing;
 
   return (
-    <form onSubmit={onSubmit} className="mt-6 grid gap-6">
+    <form
+      onSubmit={onSubmit}
+      className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start lg:gap-12"
+    >
       <input type="hidden" name="source" value={source} />
       <input type="hidden" name="page" value={page} />
 
-      <Fieldset legend="What would you like?" error={errors.package ?? errors.services ?? errors.gutter_guard_size}>
-        <div className="grid gap-2">
-          {(Object.keys(PACKAGE_LABELS) as PackageChoice[]).map((value) => (
-            <Choice
-              key={value}
-              name="package"
-              value={value}
-              checked={choice === value}
-              onChange={() => setChoice(value)}
-              aside={packagePrice(value)}
-              detail={bundleDetail(value)}
-            >
-              {PACKAGE_LABELS[value]}
-            </Choice>
-          ))}
-        </div>
+      <div className="grid gap-8">
+        <Fieldset legend="What would you like?" error={errors.package ?? errors.services ?? errors.gutter_guard_size}>
+          <div className="grid gap-2">
+            {(Object.keys(PACKAGE_LABELS) as PackageChoice[]).map((value) => (
+              <Choice
+                key={value}
+                name="package"
+                value={value}
+                checked={choice === value}
+                onChange={() => setChoice(value)}
+                aside={packagePrice(value)}
+                detail={bundleDetail(value)}
+              >
+                {PACKAGE_LABELS[value]}
+              </Choice>
+            ))}
+          </div>
 
-        {choice === "gutter-guard" ? (
-          <div className="mt-3 grid gap-2 border-l-2 border-harbour/30 pl-3">
-            <p className="text-sm font-semibold">Gutter guard size</p>
-            {GUTTER_GUARD.packages.map((pkg) => {
-              const size = pkg.id.replace("gutter-guard-", "") as GutterGuardSize;
-              return (
+          {choice === "gutter-guard" ? (
+            <div className="mt-3 grid gap-2 border-l-2 border-harbour/30 pl-3">
+              <p className="text-sm font-semibold">Gutter guard size</p>
+              {GUTTER_GUARD.packages.map((pkg) => {
+                const size = pkg.id.replace("gutter-guard-", "") as GutterGuardSize;
+                return (
+                  <Choice
+                    key={pkg.id}
+                    name="gutter_guard_size"
+                    value={size}
+                    checked={ggSize === size}
+                    onChange={() => setGgSize(size)}
+                    aside={formatPrice(pkg.price)}
+                  >
+                    {pkg.name} <span className="font-normal text-ink-muted">({packageLength(pkg)})</span>
+                  </Choice>
+                );
+              })}
+              <Choice
+                name="gutter_guard_size"
+                value="not-sure"
+                checked={ggSize === "not-sure"}
+                onChange={() => setGgSize("not-sure")}
+              >
+                Not sure <span className="font-normal text-ink-muted">(we&apos;ll measure by phone)</span>
+              </Choice>
+            </div>
+          ) : null}
+
+          {choice === "single" ? (
+            <div className="mt-3 grid gap-2 border-l-2 border-harbour/30 pl-3">
+              {SERVICES_PRICED.map((service) => (
                 <Choice
-                  key={pkg.id}
-                  name="gutter_guard_size"
-                  value={size}
-                  checked={ggSize === size}
-                  onChange={() => setGgSize(size)}
-                  aside={formatPrice(pkg.price)}
+                  key={service.id}
+                  type="checkbox"
+                  name="services"
+                  value={service.id}
+                  checked={services.includes(service.id)}
+                  onChange={() =>
+                    setServices((current) =>
+                      current.includes(service.id)
+                        ? current.filter((id) => id !== service.id)
+                        : [...current, service.id],
+                    )
+                  }
+                  aside={servicePriceLabel(service)}
                 >
-                  {pkg.name} <span className="font-normal text-ink-muted">({packageLength(pkg)})</span>
+                  {service.name}
                 </Choice>
-              );
-            })}
-            <Choice
-              name="gutter_guard_size"
-              value="not-sure"
-              checked={ggSize === "not-sure"}
-              onChange={() => setGgSize("not-sure")}
-            >
-              Not sure <span className="font-normal text-ink-muted">(we&apos;ll measure by phone)</span>
-            </Choice>
-          </div>
-        ) : null}
+              ))}
+            </div>
+          ) : (
+            <div className="mt-3 grid gap-2">
+              {ADD_ONS.map((service) => (
+                <Choice
+                  key={service.id}
+                  type="checkbox"
+                  name="addons"
+                  value={service.id}
+                  checked={addOns.includes(service.id)}
+                  onChange={() =>
+                    setAddOns((current) =>
+                      current.includes(service.id)
+                        ? current.filter((id) => id !== service.id)
+                        : [...current, service.id],
+                    )
+                  }
+                  aside={servicePriceLabel(service)}
+                >
+                  Add {service.name.toLowerCase()} while we&apos;re there?
+                </Choice>
+              ))}
+            </div>
+          )}
+        </Fieldset>
 
-        {choice === "single" ? (
-          <div className="mt-3 grid gap-2 border-l-2 border-harbour/30 pl-3">
-            {SERVICES_PRICED.map((service) => (
+        <Fieldset legend="Storeys">
+          <div className="flex gap-2">
+            {(["single", "double"] as const).map((value) => (
               <Choice
-                key={service.id}
-                type="checkbox"
-                name="services"
-                value={service.id}
-                checked={services.includes(service.id)}
-                onChange={() =>
-                  setServices((current) =>
-                    current.includes(service.id)
-                      ? current.filter((id) => id !== service.id)
-                      : [...current, service.id],
-                  )
-                }
-                aside={servicePriceLabel(service)}
+                key={value}
+                name="storeys"
+                value={value}
+                checked={storeys === value}
+                onChange={() => setStoreys(value)}
               >
-                {service.name}
-              </Choice>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-3 grid gap-2">
-            {ADD_ONS.map((service) => (
-              <Choice
-                key={service.id}
-                type="checkbox"
-                name="addons"
-                value={service.id}
-                checked={addOns.includes(service.id)}
-                onChange={() =>
-                  setAddOns((current) =>
-                    current.includes(service.id)
-                      ? current.filter((id) => id !== service.id)
-                      : [...current, service.id],
-                  )
-                }
-                aside={servicePriceLabel(service)}
-              >
-                Add {service.name.toLowerCase()} while we&apos;re there?
-              </Choice>
-            ))}
-          </div>
-        )}
-      </Fieldset>
-
-      <Fieldset legend="Storeys">
-        <div className="flex gap-2">
-          {(["single", "double"] as const).map((value) => (
-            <Choice
-              key={value}
-              name="storeys"
-              value={value}
-              checked={storeys === value}
-              onChange={() => setStoreys(value)}
-            >
-              {value === "single" ? "Single" : "Double"}
-            </Choice>
-          ))}
-        </div>
-      </Fieldset>
-
-      {showRoof ? (
-        <Fieldset legend="Roof type" error={errors.roof_type}>
-          <div className="flex flex-wrap gap-2">
-            {(["tile", "metal", "not-sure"] as const).map((value) => (
-              <Choice key={value} name="roof_type" value={value} required>
-                {value === "not-sure" ? "Not sure" : value === "tile" ? "Tile" : "Metal"}
+                {value === "single" ? "Single" : "Double"}
               </Choice>
             ))}
           </div>
         </Fieldset>
-      ) : null}
 
-      <Fieldset legend="Your suburb">
-        <div>
-          <label htmlFor={ids.suburb} className="sr-only">
-            Suburb
-          </label>
-          <select
-            id={ids.suburb}
-            name="suburb"
-            value={suburb}
-            required
-            onChange={(e) => {
-              setSuburb(e.target.value);
-              setDate("");
-            }}
-            className={`${field} mt-1`}
-          >
-            <option value="">Choose your suburb…</option>
-            {SUBURBS_ALPHABETICAL.map((s) => (
-              <option key={s.slug} value={s.slug}>
-                {s.name}
-              </option>
-            ))}
-            <option value={OTHER}>Other</option>
-          </select>
-          {errors.suburb ? <p className={fieldError}>{errors.suburb}</p> : null}
-        </div>
-
-        {isOther ? (
-          <div className="rounded-lg bg-harbour/5 p-4">
-            <TextField
-              id={ids.other}
-              name="other_suburb"
-              label="Which suburb?"
-              required
-              error={errors.other_suburb}
-            />
-            <p className="mt-2 text-sm text-ink-muted">
-              We&apos;re not booking there yet. Send your details and we&apos;ll call you about a
-              day. No deposit needed.
-            </p>
-          </div>
-        ) : null}
-      </Fieldset>
-
-      <Fieldset legend="Preferred day" error={errors.preferred_date}>
-        {days.length > 0 ? (
-          <>
-            <p className="text-sm text-ink-muted">The days we&apos;re booking your suburb&apos;s streets:</p>
-            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {days.map((day) => (
-                <Choice
-                  key={day}
-                  name="preferred_date"
-                  value={day}
-                  checked={date === day}
-                  onChange={() => setDate(day)}
-                  required
-                >
-                  {formatShortDate(day)}
+        {showRoof ? (
+          <Fieldset legend="Roof type" error={errors.roof_type}>
+            <div className="flex flex-wrap gap-2">
+              {(["tile", "metal", "not-sure"] as const).map((value) => (
+                <Choice key={value} name="roof_type" value={value} required>
+                  {value === "not-sure" ? "Not sure" : value === "tile" ? "Tile" : "Metal"}
                 </Choice>
               ))}
             </div>
-          </>
-        ) : (
+          </Fieldset>
+        ) : null}
+
+        <Fieldset legend="Your suburb">
           <div>
-            <label htmlFor={ids.date} className="block text-sm font-semibold">
-              Pick a day that suits
+            <label htmlFor={ids.suburb} className="sr-only">
+              Suburb
             </label>
-            <input
-              id={ids.date}
-              type="date"
-              name="preferred_date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              min={addDays(todayISO(), 1)}
-              max={addDays(todayISO(), OPEN_PICKER_DAYS)}
+            <select
+              id={ids.suburb}
+              name="suburb"
+              value={suburb}
               required
+              onChange={(e) => {
+                setSuburb(e.target.value);
+                setDate("");
+              }}
               className={`${field} mt-1`}
-            />
-            <p className="mt-1 text-xs text-ink-muted">
-              {isOther
-                ? "We'll call to arrange a day."
-                : "We'll confirm the day by phone, matched to when we're in your street."}
-            </p>
+            >
+              <option value="">Choose your suburb…</option>
+              {SUBURBS_ALPHABETICAL.map((s) => (
+                <option key={s.slug} value={s.slug}>
+                  {s.name}
+                </option>
+              ))}
+              <option value={OTHER}>Other</option>
+            </select>
+            {errors.suburb ? <p className={fieldError}>{errors.suburb}</p> : null}
           </div>
-        )}
-      </Fieldset>
 
-      <Fieldset legend="Your details">
-        <TextField id={ids.name} name="name" label="Name" autoComplete="name" required error={errors.name} />
-        <TextField
-          id={ids.phone}
-          name="phone"
-          label="Mobile"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder="0412 345 678"
-          required
-          error={errors.phone}
-        />
-        <TextField
-          id={ids.email}
-          name="email"
-          label="Email"
-          type="email"
-          autoComplete="email"
-          required
-          error={errors.email}
-          hint="Your booking and the deposit details go here."
-        />
-        <TextField
-          id={ids.address}
-          name="address"
-          label="Street address"
-          autoComplete="street-address"
-          placeholder="12 Example Street"
-          required
-          error={errors.address}
-        />
-      </Fieldset>
+          {isOther ? (
+            <div className="rounded-lg bg-harbour/5 p-4">
+              <TextField
+                id={ids.other}
+                name="other_suburb"
+                label="Which suburb?"
+                required
+                error={errors.other_suburb}
+              />
+              <p className="mt-2 text-sm text-ink-muted">
+                We&apos;re not booking there yet. Send your details and we&apos;ll call you about a
+                day. No deposit needed.
+              </p>
+            </div>
+          ) : null}
+        </Fieldset>
 
-      <div>
-        <label htmlFor={ids.photos} className="block text-sm font-semibold">
-          Photos of the house <span className="font-normal text-ink-muted">(optional, up to {MAX_PHOTOS})</span>
-        </label>
-        <input
-          id={ids.photos}
-          type="file"
-          name="photos"
-          accept="image/*"
-          multiple
-          className="mt-1 block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-harbour file:px-4 file:py-2.5 file:font-semibold file:text-white"
-        />
-        {errors.photos ? <p className={fieldError}>{errors.photos}</p> : null}
+        <Fieldset legend="Preferred day" error={errors.preferred_date}>
+          {days.length > 0 ? (
+            <>
+              <p className="text-sm text-ink-muted">The days we&apos;re booking your suburb&apos;s streets:</p>
+              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {days.map((day) => (
+                  <Choice
+                    key={day}
+                    name="preferred_date"
+                    value={day}
+                    checked={date === day}
+                    onChange={() => setDate(day)}
+                    required
+                  >
+                    {formatShortDate(day)}
+                  </Choice>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div>
+              <label htmlFor={ids.date} className="block text-sm font-semibold">
+                Pick a day that suits
+              </label>
+              <input
+                id={ids.date}
+                type="date"
+                name="preferred_date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                min={addDays(todayISO(), 1)}
+                max={addDays(todayISO(), OPEN_PICKER_DAYS)}
+                required
+                className={`${field} mt-1`}
+              />
+              <p className="mt-1 text-xs text-ink-muted">
+                {isOther
+                  ? "We'll call to arrange a day."
+                  : "We'll confirm the day by phone, matched to when we're in your street."}
+              </p>
+            </div>
+          )}
+        </Fieldset>
+
+        <Fieldset legend="Your details">
+          <TextField id={ids.name} name="name" label="Name" autoComplete="name" required error={errors.name} />
+          <TextField
+            id={ids.phone}
+            name="phone"
+            label="Mobile"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder="0412 345 678"
+            required
+            error={errors.phone}
+          />
+          <TextField
+            id={ids.email}
+            name="email"
+            label="Email"
+            type="email"
+            autoComplete="email"
+            required
+            error={errors.email}
+            hint="Your booking and the deposit details go here."
+          />
+          <TextField
+            id={ids.address}
+            name="address"
+            label="Street address"
+            autoComplete="street-address"
+            placeholder="12 Example Street"
+            required
+            error={errors.address}
+          />
+        </Fieldset>
+
+        <div>
+          <label htmlFor={ids.photos} className="block text-sm font-semibold">
+            Photos of the house <span className="font-normal text-ink-muted">(optional, up to {MAX_PHOTOS})</span>
+          </label>
+          <input
+            id={ids.photos}
+            type="file"
+            name="photos"
+            accept="image/*"
+            multiple
+            className="mt-1 block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-harbour file:px-4 file:py-2.5 file:font-semibold file:text-white"
+          />
+          {errors.photos ? <p className={fieldError}>{errors.photos}</p> : null}
+        </div>
+
+        <div>
+          <label htmlFor={ids.notes} className="block text-sm font-semibold">
+            Anything we should know? <span className="font-normal text-ink-muted">(optional)</span>
+          </label>
+          <textarea
+            id={ids.notes}
+            name="notes"
+            rows={3}
+            maxLength={500}
+            placeholder="Gates, dogs, access…"
+            className={`${field} mt-1`}
+          />
+          {errors.notes ? <p className={fieldError}>{errors.notes}</p> : null}
+        </div>
+
+        {errors.form ? (
+          <p role="alert" className="rounded-lg bg-harbour/10 px-4 py-3 text-sm font-medium text-harbour">
+            {errors.form}
+          </p>
+        ) : null}
+        {Object.keys(errors).length > 0 && !errors.form ? (
+          <p role="alert" className="rounded-lg bg-harbour/10 px-4 py-3 text-sm font-medium text-harbour">
+            Please check the highlighted fields above.
+          </p>
+        ) : null}
       </div>
 
-      <div>
-        <label htmlFor={ids.notes} className="block text-sm font-semibold">
-          Anything we should know? <span className="font-normal text-ink-muted">(optional)</span>
-        </label>
-        <textarea
-          id={ids.notes}
-          name="notes"
-          rows={3}
-          maxLength={500}
-          placeholder="Gates, dogs, access…"
-          className={`${field} mt-1`}
-        />
-        {errors.notes ? <p className={fieldError}>{errors.notes}</p> : null}
-      </div>
-
-      {errors.form ? (
-        <p role="alert" className="rounded-lg bg-harbour/10 px-4 py-3 text-sm font-medium text-harbour">
-          {errors.form}
+      {/*
+        Price. Sticky, because it is the reason people keep going: a bar along
+        the bottom of a phone, a summary card beside the form on a desktop.
+      */}
+      <div className="sticky bottom-0 z-10 -mx-5 border-t border-line bg-concrete/95 px-5 py-3 backdrop-blur sm:-mx-8 sm:px-8 lg:top-24 lg:bottom-auto lg:mx-0 lg:rounded-2xl lg:border lg:bg-surface lg:p-6 lg:shadow-[0_1px_2px_rgba(27,35,40,0.04)] lg:backdrop-blur-none">
+        <p className="eyebrow mb-3 hidden text-harbour lg:block">
+          {isOther ? "Your enquiry" : "Your price"}
         </p>
-      ) : null}
-      {Object.keys(errors).length > 0 && !errors.form ? (
-        <p role="alert" className="rounded-lg bg-harbour/10 px-4 py-3 text-sm font-medium text-harbour">
-          Please check the highlighted fields above.
-        </p>
-      ) : null}
-
-      {/* Price. Sticky, because it is the reason people keep going. */}
-      <div className="sticky bottom-0 z-10 -mx-5 border-t border-line bg-concrete/95 px-5 py-3 backdrop-blur">
         {!isOther && hasSelection ? (
-          <div className="mb-3">
+          <div className="mb-3 lg:mb-5">
             <p className="font-display text-price text-harbour">
               {priced.isFrom ? "From " : ""}
               {formatPrice(priced.total)}
@@ -582,7 +593,7 @@ function DepositStep({ booking, onDone }: { booking: BookingSuccess; onDone: () 
   ];
 
   return (
-    <div className="mt-6 rounded-xl border border-line bg-surface p-6">
+    <div className="max-w-2xl rounded-2xl border border-line bg-surface p-6 sm:p-8">
       <p className="text-sm font-semibold tracking-wide text-harbour uppercase">Step 2 of 2</p>
       <p className="display-caps mt-1 text-section text-harbour">
         {showBank ? "Pay your deposit" : "Your deposit"}
@@ -636,7 +647,7 @@ function DepositStep({ booking, onDone }: { booking: BookingSuccess; onDone: () 
 
 function Confirmation({ booking }: { booking: BookingSuccess }) {
   return (
-    <div className="mt-6 rounded-xl border border-line bg-surface p-6">
+    <div className="max-w-2xl rounded-2xl border border-line bg-surface p-6 sm:p-8">
       <p className="display-caps text-section text-harbour">
         You&apos;re booked for {formatLongDate(booking.date)}.
       </p>

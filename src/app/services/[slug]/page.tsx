@@ -4,22 +4,20 @@ import { notFound } from "next/navigation";
 
 import { PageShell } from "@/components/site/chrome";
 import {
-  BookBand,
   BundleCards,
+  Closing,
   DoubleStoreyNote,
-  RecentWork,
-  TalkFirst,
+  NearYou,
+  ServiceWork,
 } from "@/components/site/sections";
-import { cta, Section, SectionHeading, TickList } from "@/components/site/ui";
+import { cta, PageHeader, Section, SectionHeader, TickList } from "@/components/site/ui";
 import { formatPrice, HEADLINE_BUNDLE } from "@/data/pricing";
 import { getServicePage, SERVICE_PAGES, servicePrice } from "@/data/services";
-import { PRIORITY_SUBURBS } from "@/data/suburbs";
 import { breadcrumbs, JsonLd, serviceSchema } from "@/lib/schema";
 
 export function generateStaticParams() {
   return SERVICE_PAGES.map((s) => ({ slug: s.slug }));
 }
-
 
 export async function generateMetadata({
   params,
@@ -57,66 +55,50 @@ export default async function ServicePage({
         ])}
       />
 
-      <section className="on-dark bg-harbour px-5 pt-8 pb-10 text-white">
-        <div className="mx-auto w-full max-w-2xl">
-          <p className="text-xs font-semibold tracking-[0.18em] text-white/70 uppercase">
-            Sunshine Coast
-          </p>
-          <h1 className="display-caps text-hero mt-3 text-balance">{page.heading}</h1>
-          <p className="mt-4 font-display text-price text-hivis">
-            {label}
-            <span className="ml-2 font-sans text-sm font-normal text-white/75">
-              {from ? "confirmed by phone, GST incl." : "single-storey home, GST incl."}
-            </span>
-          </p>
-          {page.body.map((para) => (
-            <p key={para} className="mt-3 max-w-prose text-white/85">
-              {para}
-            </p>
-          ))}
-          <div className="mt-6">
-            <Link href={`/book?package=single&services=${page.pricingId}`} className={cta}>
-              Book your day
-            </Link>
+      <PageHeader
+        eyebrow="Sunshine Coast"
+        title={page.heading}
+        aside={
+          <div className="rounded-2xl bg-surface p-6 text-ink sm:p-8">
+            <h2 className="eyebrow text-harbour">What&apos;s included</h2>
+            <TickList items={page.includes} className="mt-4" />
+            <DoubleStoreyNote className="mt-6 border-t border-line pt-5" />
           </div>
-        </div>
-      </section>
-
-      <Section labelledBy="includes" className="bg-surface">
-        <SectionHeading id="includes">What&apos;s included</SectionHeading>
-        <TickList items={page.includes} className="mt-5 text-ink" />
-        <DoubleStoreyNote />
-      </Section>
-
-      <Section labelledBy="bundle">
-        <SectionHeading id="bundle">Save with a bundle</SectionHeading>
-        <p className="mt-3 text-ink-muted">
-          Getting more than one thing done? The {HEADLINE_BUNDLE.name} does the house, driveway,
-          gutters and windows in one morning.
+        }
+      >
+        <p className="font-display text-price text-hivis">
+          {label}
+          <span className="ml-2 font-sans text-sm font-normal text-white/75">
+            {from ? "confirmed by phone, GST incl." : "single-storey home, GST incl."}
+          </span>
         </p>
+        {page.body.map((para) => (
+          <p key={para} className="max-w-prose text-white/85">
+            {para}
+          </p>
+        ))}
+        <div className="pt-2">
+          <Link href={`/book?package=single&services=${page.pricingId}`} className={cta}>
+            Book your day
+          </Link>
+        </div>
+      </PageHeader>
+
+      <ServiceWork service={page.photoService} name={name} tone="grey" />
+
+      <Section labelledBy="bundle-heading" tone="white">
+        <SectionHeader
+          id="bundle-heading"
+          eyebrow="Save with a bundle"
+          title="Getting more than one thing done?"
+          lead={`The ${HEADLINE_BUNDLE.name} does the house, driveway, gutters and windows in one morning.`}
+        />
         <BundleCards ids={["exterior-refresh", "full-exterior"]} />
       </Section>
 
-      <RecentWork only={[page.photoService]} />
+      <NearYou title={`${page.heading} near you`} prefix={page.keyword} tone="grey" />
 
-      <Section labelledBy="where">
-        <SectionHeading id="where">{page.heading} near you</SectionHeading>
-        <ul className="mt-4 flex flex-wrap gap-2">
-          {PRIORITY_SUBURBS.map((s) => (
-            <li key={s.slug}>
-              <Link
-                href={`/areas/${s.slug}`}
-                className="inline-block rounded-full border border-line bg-surface px-3 py-1 text-sm text-ink hover:border-harbour/50"
-              >
-                {page.keyword} {s.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </Section>
-
-      <BookBand />
-      <TalkFirst />
+      <Closing tone="white" />
     </PageShell>
   );
 }

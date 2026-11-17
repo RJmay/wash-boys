@@ -40,13 +40,23 @@ Tired of cleaning gutters? Aluminium gutter guard, fitted, from $1,690, gutter c
 
 Buderim, Little Mountain, Aroona, Mountain Creek, Currimundi, Pelican Waters and nearby. [See your suburb]
 
-**Trust strip**
+**Why book us** (the positioning from the business brief, replacing the old trust strip, Nov 2026)
 
-- Local, two-person team, the same two people every job
-- Soft wash on painted surfaces, never blasted
-- Wash water kept out of the street drains
+- One morning, one fixed price. The whole exterior done in one go. No quote visit, no call-out fee.
+- Why it's cheaper. We already deliver to your street, and we book whole streets on the same days, so there's no travel cost to pass on.
+- Local and accountable. Two locals, the same two people on every job.
+- Careful with your home. Soft wash on painted surfaces, not high pressure. Wash water kept out of the street drains.
 - `[PLACEHOLDER: insurance line once cover is in place]`
 - `[PLACEHOLDER: reviews once we have them]`
+
+**Closing** (every page ends with this, Nov 2026)
+
+Book the Exterior Refresh, $790. Pick your day, pay the deposit, and we do the rest.
+- No quote visit, no call-out fee
+- You don't need to be home
+- If it rains, we move you to the next available day at no cost
+
+Beside it: Rather talk first? Call or text, or leave your number and we'll call you back.
 
 ---
 

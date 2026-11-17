@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { BookingForm } from "@/components/book/booking-form";
 import { PageShell } from "@/components/site/chrome";
 import { ContactLinks } from "@/components/site/tracking";
-import { Section } from "@/components/site/ui";
+import { PageHeader, Section } from "@/components/site/ui";
 import {
   GUTTER_GUARD_SIZES,
   PACKAGE_CHOICES,
@@ -60,14 +60,18 @@ export default async function BookPage({ searchParams }: PageProps<"/book">) {
 
   return (
     <PageShell>
-      <Section labelledBy="book-heading">
-        <h1 id="book-heading" className="display-caps text-hero text-harbour">
-          Book your day
-        </h1>
-        <p className="mt-3 text-ink-muted">
-          Choose what you&apos;d like and a day, and you&apos;ll see the price as you go.{" "}
-          Rather talk first? <ContactLinks />
-        </p>
+      <PageHeader
+        compact
+        titleClassName="text-section sm:text-hero"
+        title="Book your day"
+        lead={
+          <p className="text-base sm:text-lg">
+            Choose what you&apos;d like and a day, and you&apos;ll see the price as you go. Rather
+            talk first? <ContactLinks />
+          </p>
+        }
+      />
+      <Section tone="grey" className="pt-8! sm:pt-12! lg:pt-14!">
         <BookingForm
           streetDays={allUpcomingDays()}
           initialPackage={initialPackage}

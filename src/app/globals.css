@@ -29,12 +29,12 @@
   --font-display: var(--font-anton), "Arial Narrow", Impact, sans-serif;
   --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
 
-  --text-hero: clamp(2.5rem, 11vw, 4.25rem);
+  --text-hero: clamp(2.5rem, 5vw + 1.25rem, 4.75rem);
   --text-hero--line-height: 0.92;
   --text-hero--letter-spacing: -0.01em;
-  --text-section: clamp(1.75rem, 6vw, 2.5rem);
-  --text-section--line-height: 1.05;
-  --text-price: clamp(1.375rem, 5vw, 1.75rem);
+  --text-section: clamp(1.875rem, 2.5vw + 1.125rem, 2.75rem);
+  --text-section--line-height: 1.02;
+  --text-price: clamp(1.5rem, 1.5vw + 1rem, 2rem);
   --text-price--line-height: 1;
 }
 
@@ -85,4 +85,13 @@
   font-family: var(--font-display);
   text-transform: uppercase;
   letter-spacing: 0.01em;
+}
+
+/* Small label above a heading. Inherits colour so it works on light and dark. */
+@utility eyebrow {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }

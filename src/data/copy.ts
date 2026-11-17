@@ -1,7 +1,6 @@
 import {
   DEPOSITS,
   formatPrice,
-  getBundle,
   getPricedService,
   GUTTER_GUARD_FROM,
   HEADLINE_BUNDLE,
@@ -12,7 +11,6 @@ import {
  * Every number is interpolated from pricing.json, never typed in.
  */
 
-const refresh = getBundle("exterior-refresh");
 const driveway = getPricedService("driveway");
 
 export const HEADLINE_PRICE = formatPrice(HEADLINE_BUNDLE.price);
@@ -24,8 +22,6 @@ export const REFRESH_INCLUDES = [
   "Gutters cleaned, debris bagged and taken away",
   "Exterior windows cleaned, frames and screens rinsed",
 ] as const;
-
-export const REFRESH_COMPARE = `Bought separately: ${formatPrice(refresh.separatePrice ?? 0)}. Together: ${formatPrice(refresh.price)}.`;
 
 /** Short version, on the home page and suburb pages. */
 export const HOW_IT_WORKS_SHORT: readonly { title: string; body: string }[] = [
@@ -58,7 +54,30 @@ export const HOW_IT_WORKS_FULL: readonly { title: string; body: string }[] = [
   },
 ];
 
-export const GUTTER_GUARD_TEASER = `Tired of cleaning gutters? Aluminium gutter guard, fitted, from ${formatPrice(GUTTER_GUARD_FROM)}, gutter clean included. Fixed price by gutter length, no sales visit.`;
+/**
+ * "Why book us", from the positioning in docs/brief/business-brief.md. Only
+ * what is true today: insurance and reviews live in PLACEHOLDERS until real.
+ */
+export const WHY_US: readonly { title: string; body: string }[] = [
+  {
+    title: "One morning, one fixed price.",
+    body: "The whole exterior done in one go. No quote visit, no call-out fee.",
+  },
+  {
+    title: "Why it's cheaper.",
+    body: "We already deliver to your street, and we book whole streets on the same days, so there's no travel cost to pass on.",
+  },
+  {
+    title: "Local and accountable.",
+    body: "Two locals, the same two people on every job.",
+  },
+  {
+    title: "Careful with your home.",
+    body: "Soft wash on painted surfaces, not high pressure. Wash water kept out of the street drains.",
+  },
+];
+
+export const GUTTER_GUARD_TEASER =`Tired of cleaning gutters? Aluminium gutter guard, fitted, from ${formatPrice(GUTTER_GUARD_FROM)}, gutter clean included. Fixed price by gutter length, no sales visit.`;
 
 export const PRICE_TABLE_NOTE =
   "All prices include GST and are for single-storey homes. Not sure of your size? Book anyway and we'll confirm by phone before the day.";

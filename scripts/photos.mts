@@ -52,8 +52,30 @@ const ALIGN: Record<string, { scale: number; dx: number; dy: number }> = {
   "house-side": { scale: 0.9923, dx: -0.0029, dy: -0.0037 },
 };
 
+/**
+ * Strips of the frame to drop from both sides of a pair, as fractions: a
+ * "BEFORE"/"AFTER" caption burned into the shot clashes with the slider's own
+ * labels. Same trim on both sides, so the pair stays aligned.
+ */
+const TRIM: Record<string, { top?: number; bottom?: number; left?: number; right?: number }> = {
+  "gutter-cleaning": { top: 0.095 },
+};
+
+type Region = { x0: number; y0: number; x1: number; y1: number };
+
+function trimmed(region: Region, pair: string): Region {
+  const t = TRIM[pair];
+  if (!t) return region;
+  return {
+    x0: Math.max(region.x0, t.left ?? 0),
+    y0: Math.max(region.y0, t.top ?? 0),
+    x1: Math.min(region.x1, 1 - (t.right ?? 0)),
+    y1: Math.min(region.y1, 1 - (t.bottom ?? 0)),
+  };
+}
+
 /** Source region of each side that the two shots have in common. */
-function commonCrop(pair: string) {
+function commonCrop(pair: string): { before: Region; after: Region } {
   const a = ALIGN[pair];
   const full = { x0: 0, y0: 0, x1: 1, y1: 1 };
   if (!a) return { before: full, after: full };
@@ -120,7 +142,7 @@ for (const file of sources.sort()) {
     continue;
   }
   const { pairName, side } = parsed;
-  const crop = commonCrop(pairName)[side === "before" ? "before" : "after"];
+  const crop = trimmed(commonCrop(pairName)[side], pairName);
 
   const encoded = await page.evaluate(
     async ({ maxWidth, quality, crop, aspect }) => {
@@ -179,7 +201,7 @@ for (const file of sources.sort()) {
   const before = (statSync(src).size / 1024 / 1024).toFixed(1);
   const after = (bytes.length / 1024).toFixed(0);
   console.log(
-    `  ${file.padEnd(30)} ${encoded.srcW}x${encoded.srcH} ${before}MB -> ${encoded.w}x${encoded.h} ${after}KB${encoded.cropped ? " (aligned)" : ""}`,
+    `  ${file.padEnd(30)} ${encoded.srcW}x${encoded.srcH} ${before}MB -> ${encoded.w}x${encoded.h} ${after}KB${encoded.cropped ? (TRIM[pairName] ? " (trimmed)" : " (aligned)") : ""}`,
   );
 }
 

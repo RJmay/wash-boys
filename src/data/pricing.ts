@@ -16,13 +16,29 @@ export type GutterGuardId =
   | "gutter-guard-large";
 export type BundleId = "exterior-refresh" | "full-exterior" | "annual-refresh";
 
+/** Driveway sizes, counted in cars. "bigger" is past the largest listed size. */
+export const DRIVEWAY_SIZES = ["1-2-cars", "3-cars", "4-cars", "bigger"] as const;
+export type DrivewaySize = (typeof DRIVEWAY_SIZES)[number];
+
+export type DrivewaySizeOption = {
+  id: Exclude<DrivewaySize, "bigger">;
+  /** Most cars this size fits. */
+  cars: number;
+  name: string;
+  /** How the cars sit, e.g. "two wide, two long". */
+  detail?: string;
+  price: number;
+};
+
 export type PricedService = {
   id: ServiceId;
   name: string;
   price: number;
   description: string;
-  includedArea_m2?: number;
-  extraPerM2?: number;
+  /** Priced by size (driveway). `price` is the smallest size. */
+  sizes?: DrivewaySizeOption[];
+  /** What happens past the largest size. */
+  overMaxNote?: string;
   /** True when `price` is a starting price, confirmed by phone (fences). */
   from?: boolean;
   /** How a "from" price scales, e.g. "per metre, per side". */
@@ -90,6 +106,53 @@ export function getPricedService(id: string): PricedService | undefined {
   return SERVICES_PRICED.find((s) => s.id === id);
 }
 
+// ── Driveway sizes ────────────────────────────────────────────────────────
+
+function drivewayOptions(): DrivewaySizeOption[] {
+  const sizes = getPricedService("driveway")?.sizes;
+  if (!sizes?.length) throw new Error("pricing.json: the driveway has no sizes");
+  return sizes;
+}
+
+/** 1 or 2 cars, 3 cars, 4 cars - smallest first, from pricing.json. */
+export const DRIVEWAY_OPTIONS = drivewayOptions();
+/** The size every bundle price includes, and the single-service price. */
+export const DRIVEWAY_BASE = DRIVEWAY_OPTIONS[0];
+export const DRIVEWAY_LARGEST = DRIVEWAY_OPTIONS[DRIVEWAY_OPTIONS.length - 1];
+export const DRIVEWAY_OVER_MAX_NOTE = getPricedService("driveway")?.overMaxNote ?? "";
+
+/** What a size adds on top of a bundle: "3 cars" is +$120. */
+export function drivewayExtra(option: DrivewaySizeOption): number {
+  return option.price - DRIVEWAY_BASE.price;
+}
+
+/** "4 cars (two wide, two long)". */
+export function drivewaySizeName(option: DrivewaySizeOption): string {
+  return option.detail ? `${option.name} (${option.detail})` : option.name;
+}
+
+/** The size a booking resolves to. Not given means the base size. */
+function drivewayFor(size: DrivewaySize | undefined): {
+  option: DrivewaySizeOption;
+  label: string;
+  bigger: boolean;
+} {
+  if (size === "bigger") {
+    return {
+      option: DRIVEWAY_LARGEST,
+      label: `bigger than ${DRIVEWAY_LARGEST.cars} cars`,
+      bigger: true,
+    };
+  }
+  const option = DRIVEWAY_OPTIONS.find((o) => o.id === size) ?? DRIVEWAY_BASE;
+  return { option, label: option.name, bigger: false };
+}
+
+/** "3 cars", "bigger than 4 cars". */
+export function drivewaySizeLabel(size: DrivewaySize): string {
+  return drivewayFor(size).label;
+}
+
 /** Services offered on top of a bundle or gutter guard (fences). */
 export const ADD_ONS = SERVICES_PRICED.filter((s) => s.addOn);
 export const ADD_ON_IDS = ADD_ONS.map((s) => s.id);
@@ -140,9 +203,14 @@ export function formatPrice(amount: number): string {
   return `$${amount.toLocaleString("en-AU", { maximumFractionDigits: 0 })}`;
 }
 
+/** True when `price` is where the service starts, not what it costs. */
+export function isFromPrice(service: PricedService): boolean {
+  return Boolean(service.from) || (service.sizes?.length ?? 0) > 1;
+}
+
 /** "$450", or "from $120" for a service priced by size. */
 export function servicePriceLabel(service: PricedService): string {
-  return `${service.from ? "from " : ""}${formatPrice(service.price)}`;
+  return `${isFromPrice(service) ? "from " : ""}${formatPrice(service.price)}`;
 }
 
 // ── Booking selection ─────────────────────────────────────────────────────
@@ -174,6 +242,8 @@ export type Selection = {
   services?: ServiceId[];
   /** Add-ons (fences) on top of any other package. */
   addOns?: ServiceId[];
+  /** Only when the job includes the driveway. Not given means 1 or 2 cars. */
+  drivewaySize?: DrivewaySize;
   storeys: Storeys;
 };
 
@@ -185,7 +255,7 @@ export type Quote = {
   deposit: number;
   /** True when the total is a floor ("from"), e.g. gutter guard size not sure. */
   isFrom: boolean;
-  /** Things only a phone call settles: valleys, driveway over 60 m2. */
+  /** Things only a phone call settles: valleys, a driveway past 4 cars. */
   confirmByPhone: string[];
   /** Short name for the booking, e.g. "Exterior Refresh". */
   summary: string;
@@ -234,11 +304,18 @@ export function quote(selection: Selection): Quote {
   const lines: PriceLine[] = [];
   let isFrom = false;
   let summary: string;
+  const driveway = drivewayFor(items.includes("driveway") ? selection.drivewaySize : undefined);
+  if (items.includes("driveway") && driveway.bigger) isFrom = true;
 
   if (selection.package === "exterior-refresh" || selection.package === "full-exterior") {
     const bundle = getBundle(selection.package);
     lines.push({ label: bundle.name, amount: bundle.price });
     summary = bundle.name;
+    // The bundle price covers the base size; a bigger driveway is the difference.
+    const extra = bundle.includes.includes("driveway") ? drivewayExtra(driveway.option) : 0;
+    if (extra > 0) {
+      lines.push({ label: `Driveway: ${driveway.label}`, amount: extra });
+    }
   } else if (selection.package === "gutter-guard") {
     const size = selection.gutterGuardSize ?? "not-sure";
     const pkg = gutterGuardPackageFor(size);
@@ -256,7 +333,12 @@ export function quote(selection: Selection): Quote {
   } else {
     for (const id of selection.services ?? []) {
       const service = getPricedService(id);
-      if (service) lines.push({ label: service.name, amount: service.price });
+      if (!service) continue;
+      lines.push(
+        id === "driveway"
+          ? { label: `${service.name} (${driveway.label})`, amount: driveway.option.price }
+          : { label: service.name, amount: service.price },
+      );
     }
     summary = lines.map((l) => l.label).join(", ") || "Single services";
   }
@@ -287,13 +369,8 @@ export function quote(selection: Selection): Quote {
   }
 
   const confirmByPhone: string[] = [];
-  if (items.includes("driveway")) {
-    const driveway = getPricedService("driveway");
-    if (driveway?.includedArea_m2 && driveway.extraPerM2) {
-      confirmByPhone.push(
-        `Driveway and paths over ${driveway.includedArea_m2} m² are ${formatPrice(driveway.extraPerM2)} per extra m².`,
-      );
-    }
+  if (items.includes("driveway") && driveway.bigger) {
+    confirmByPhone.push(DRIVEWAY_OVER_MAX_NOTE);
   }
   for (const service of fromServices) {
     confirmByPhone.push(
@@ -316,6 +393,19 @@ export function quote(selection: Selection): Quote {
     summary,
     items,
   };
+}
+
+/** True when the job includes the driveway (drives the driveway-size question). */
+export function includesDriveway(selection: Pick<Selection, "package" | "services">): boolean {
+  switch (selection.package) {
+    case "exterior-refresh":
+    case "full-exterior":
+      return getBundle(selection.package).includes.includes("driveway");
+    case "single":
+      return (selection.services ?? []).includes("driveway");
+    case "gutter-guard":
+      return false;
+  }
 }
 
 /** True when the selection includes gutter guard (drives the roof-type question). */

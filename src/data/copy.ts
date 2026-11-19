@@ -1,7 +1,7 @@
 import {
   DEPOSITS,
+  DRIVEWAY_BASE,
   formatPrice,
-  getPricedService,
   GUTTER_GUARD_FROM,
   HEADLINE_BUNDLE,
 } from "./pricing";
@@ -11,14 +11,12 @@ import {
  * Every number is interpolated from pricing.json, never typed in.
  */
 
-const driveway = getPricedService("driveway");
-
 export const HEADLINE_PRICE = formatPrice(HEADLINE_BUNDLE.price);
 
 /** "What's in the Exterior Refresh". */
 export const REFRESH_INCLUDES = [
   "House soft wash: walls, eaves and frames",
-  `Driveway and paths pressure cleaned, up to ${driveway?.includedArea_m2 ?? 0} m²`,
+  `Driveway and paths pressure cleaned, up to ${DRIVEWAY_BASE.cars} cars`,
   "Gutters cleaned, debris bagged and taken away",
   "Exterior windows cleaned, frames and screens rinsed",
 ] as const;
@@ -32,7 +30,7 @@ export const HOW_IT_WORKS_SHORT: readonly { title: string; body: string }[] = [
     body: "One on the gutters and windows, one on the wash and driveway.",
   },
   {
-    title: "Done in four to five hours.",
+    title: "Done in about 4 to 6 hours.",
     body: "You get before-and-after photos and pay the balance.",
   },
 ];

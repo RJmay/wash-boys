@@ -1,4 +1,13 @@
-import { formatPrice, getPricedService, servicePriceLabel, type ServiceId } from "./pricing";
+import {
+  DRIVEWAY_LARGEST,
+  DRIVEWAY_OPTIONS,
+  drivewaySizeName,
+  formatPrice,
+  getPricedService,
+  isFromPrice,
+  servicePriceLabel,
+  type ServiceId,
+} from "./pricing";
 import type { PhotoService } from "./site";
 
 /**
@@ -27,9 +36,10 @@ export type ServicePage = {
   photoService: PhotoService;
 };
 
-const driveway = getPricedService("driveway");
-const includedArea = driveway?.includedArea_m2 ?? 0;
-const extraPerM2 = driveway?.extraPerM2 ?? 0;
+/** "1 or 2 cars $250. 3 cars $370. 4 cars (two wide, two long) $490." */
+const drivewaySizes = DRIVEWAY_OPTIONS.map(
+  (o) => `${drivewaySizeName(o)} ${formatPrice(o.price)}.`,
+).join(" ");
 
 export const SERVICE_PAGES: readonly ServicePage[] = [
   {
@@ -54,11 +64,12 @@ export const SERVICE_PAGES: readonly ServicePage[] = [
     keyword: "pressure cleaning",
     heading: "Driveway and path pressure cleaning",
     body: [
-      `Up to ${includedArea} m² of concrete or pavers, cleaned with a rotary surface cleaner for an even finish with no stripes.`,
-      `Extra area ${formatPrice(extraPerM2)} per m². Oil stains pre-treated where possible.`,
+      "Concrete or pavers, cleaned with a rotary surface cleaner for an even finish with no stripes. Oil stains pre-treated where possible.",
+      `Priced by how many cars your driveway fits. ${drivewaySizes} Bigger than ${DRIVEWAY_LARGEST.cars} cars, we'll confirm the price by phone.`,
     ],
     includes: [
-      `Driveway and paths, up to ${includedArea} m²`,
+      "Driveway and paths",
+      `Priced by size, 1 to ${DRIVEWAY_LARGEST.cars} cars`,
       "Rotary surface cleaner for an even finish",
       "Oil stains pre-treated where possible",
     ],
@@ -128,15 +139,31 @@ export function servicePrice(page: ServicePage): {
   price: number;
   /** "$450" or "from $120". */
   label: string;
+  /** True when `price` is where it starts. */
   from: boolean;
+  /**
+   * fixed: one price (single-storey). sized: a fixed price per size
+   * (driveway, by cars). phone: a starting price confirmed by phone (fences).
+   */
+  basis: "fixed" | "sized" | "phone";
+  /** The line beside the price: "1 or 2 cars, GST incl." */
+  note: string;
 } {
   const priced = getPricedService(page.pricingId);
   if (!priced) throw new Error(`pricing.json has no service "${page.pricingId}"`);
+  const basis = priced.from ? "phone" : priced.sizes?.length ? "sized" : "fixed";
   return {
     name: priced.name,
     price: priced.price,
     label: servicePriceLabel(priced),
-    from: Boolean(priced.from),
+    from: isFromPrice(priced),
+    basis,
+    note:
+      basis === "phone"
+        ? "confirmed by phone, GST incl."
+        : basis === "sized"
+          ? `${priced.sizes?.[0]?.name ?? ""}, GST incl.`
+          : "single-storey home, GST incl.",
   };
 }
 

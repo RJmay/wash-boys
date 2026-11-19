@@ -32,6 +32,8 @@ export type BookingEmailData = {
   confirmByPhone: string[];
   storeys: "single" | "double";
   roofType?: string;
+  /** "3 cars", when the job includes the driveway. */
+  driveway?: string;
   date: string;
   notes?: string;
   source?: string;
@@ -98,7 +100,7 @@ function ownerBody(data: BookingEmailData): string {
     "",
     `  ${data.name}   ${formatAuMobile(data.phone)}   ${data.email}`,
     `  ${data.address}, ${data.suburbName}`,
-    `  ${data.storeys === "double" ? "DOUBLE storey" : "Single storey"}${data.roofType ? `, roof: ${data.roofType}` : ""}`,
+    `  ${data.storeys === "double" ? "DOUBLE storey" : "Single storey"}${data.roofType ? `, roof: ${data.roofType}` : ""}${data.driveway ? `, driveway: ${data.driveway}` : ""}`,
     "",
     `  ${data.summary}`,
     ...data.lines.map((l) => `    ${l.label}: ${formatPrice(l.amount)}`),

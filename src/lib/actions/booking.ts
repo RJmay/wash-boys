@@ -1,7 +1,13 @@
 "use server";
 
 import { BUSINESS } from "@/data/business";
-import { quote, type PriceLine } from "@/data/pricing";
+import {
+  DRIVEWAY_BASE,
+  drivewaySizeLabel,
+  includesDriveway,
+  quote,
+  type PriceLine,
+} from "@/data/pricing";
 import { getSuburb } from "@/data/suburbs";
 import { logEvent } from "./events";
 import { sendBookingEmails, sendLeadAlert } from "@/lib/email";
@@ -184,6 +190,7 @@ export async function createBooking(
     storeys: text(formData, "storeys"),
     package: text(formData, "package"),
     gutter_guard_size: text(formData, "gutter_guard_size"),
+    driveway_size: text(formData, "driveway_size"),
     services: formData.getAll("services").filter((v) => typeof v === "string"),
     addons: formData.getAll("addons").filter((v) => typeof v === "string"),
     roof_type: text(formData, "roof_type"),
@@ -204,11 +211,16 @@ export async function createBooking(
   }
 
   // Recompute rather than trust the browser.
+  const services = input.package === "single" ? input.services : undefined;
+  const drivewaySize = includesDriveway({ package: input.package, services })
+    ? (input.driveway_size ?? DRIVEWAY_BASE.id)
+    : undefined;
   const priced = quote({
     package: input.package,
     gutterGuardSize: input.package === "gutter-guard" ? input.gutter_guard_size : undefined,
-    services: input.package === "single" ? input.services : undefined,
+    services,
     addOns: input.package === "single" ? undefined : input.addons,
+    drivewaySize,
     storeys: input.storeys,
   });
   const hasGutterGuard = priced.items.some((id) => id.startsWith("gutter-guard"));
@@ -245,6 +257,7 @@ export async function createBooking(
         storeys: input.storeys,
         package: input.package,
         gutter_guard_size: input.package === "gutter-guard" ? (input.gutter_guard_size ?? null) : null,
+        driveway_size: drivewaySize ?? null,
         roof_type: hasGutterGuard ? (input.roof_type ?? null) : null,
         quoted_price: priced.total,
         price_lines: priced.lines as unknown as Json,
@@ -291,6 +304,7 @@ export async function createBooking(
     confirmByPhone: priced.confirmByPhone,
     storeys: input.storeys,
     roofType: hasGutterGuard ? input.roof_type : undefined,
+    driveway: drivewaySize ? drivewaySizeLabel(drivewaySize) : undefined,
     date: input.preferred_date,
     notes: input.notes,
     source: input.source,

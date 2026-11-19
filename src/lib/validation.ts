@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import {
   ADD_ON_IDS,
+  DRIVEWAY_SIZES,
   GUTTER_GUARD_SIZES,
   includesGutterGuard,
   PACKAGE_CHOICES,
@@ -124,6 +125,8 @@ export const bookingSchema = z
     storeys: z.enum(["single", "double"], { message: "Single or double storey?" }),
     package: z.enum(PACKAGE_CHOICES, { message: "Pick what you would like done" }),
     gutter_guard_size: z.enum(GUTTER_GUARD_SIZES).optional(),
+    /** Missing means 1 or 2 cars, the size every bundle price includes. */
+    driveway_size: z.enum(DRIVEWAY_SIZES).optional(),
     services: z
       .array(z.enum(SERVICE_IDS))
       .max(SERVICE_IDS.length)

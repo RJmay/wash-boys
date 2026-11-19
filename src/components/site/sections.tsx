@@ -15,6 +15,8 @@ import {
   BUNDLES,
   DEPOSITS,
   DOUBLE_STOREY,
+  DRIVEWAY_OPTIONS,
+  drivewayExtra,
   formatPrice,
   getPricedService,
   GUTTER_GUARD,
@@ -701,6 +703,45 @@ export function GutterGuardTable() {
               </td>
             </tr>
           ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** Driveway sizes: the price on its own, and what each size adds to a bundle. */
+export function DrivewayTable() {
+  return (
+    <div className="overflow-hidden rounded-xl border border-line bg-surface">
+      <table className="w-full text-left">
+        <caption className="sr-only">Driveway sizes and prices</caption>
+        <thead className="bg-concrete text-sm text-ink-muted">
+          <tr>
+            <th scope="col" className="px-4 py-3 font-semibold sm:px-5">Driveway</th>
+            <th scope="col" className="px-4 py-3 text-right font-semibold sm:px-5">On its own</th>
+            <th scope="col" className="px-4 py-3 text-right font-semibold sm:px-5">In a bundle</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-line">
+          {DRIVEWAY_OPTIONS.map((option) => {
+            const extra = drivewayExtra(option);
+            return (
+              <tr key={option.id}>
+                <th scope="row" className="px-4 py-4 font-semibold text-ink sm:px-5">
+                  {option.name}
+                  {option.detail ? (
+                    <span className="block text-sm font-normal text-ink-muted">{option.detail}</span>
+                  ) : null}
+                </th>
+                <td className="px-4 py-4 text-right font-display text-xl text-harbour sm:px-5">
+                  {formatPrice(option.price)}
+                </td>
+                <td className="px-4 py-4 text-right text-ink-muted sm:px-5">
+                  {extra ? `+${formatPrice(extra)}` : "Included"}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

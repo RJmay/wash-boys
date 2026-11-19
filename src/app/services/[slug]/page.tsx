@@ -25,13 +25,17 @@ export async function generateMetadata({
   const { slug } = await params;
   const page = getServicePage(slug);
   if (!page) return {};
-  const { name, label, from } = servicePrice(page);
+  const { name, label, basis } = servicePrice(page);
+  const bundle = `${formatPrice(HEADLINE_BUNDLE.price)} ${HEADLINE_BUNDLE.name}`;
 
   return {
     title: `${page.heading}, Sunshine Coast: ${label}`,
-    description: from
-      ? `${name} on the Sunshine Coast: ${label}, priced by length and confirmed by phone, GST included. Add it to the ${formatPrice(HEADLINE_BUNDLE.price)} ${HEADLINE_BUNDLE.name}.`
-      : `${name} on the Sunshine Coast: ${label} for a single-storey home, GST included. Or get it in the ${formatPrice(HEADLINE_BUNDLE.price)} ${HEADLINE_BUNDLE.name}.`,
+    description:
+      basis === "phone"
+        ? `${name} on the Sunshine Coast: ${label}, priced by length and confirmed by phone, GST included. Add it to the ${bundle}.`
+        : basis === "sized"
+          ? `${name} on the Sunshine Coast: ${label}, a fixed price by how many cars fit, GST included. Or get it in the ${bundle}.`
+          : `${name} on the Sunshine Coast: ${label} for a single-storey home, GST included. Or get it in the ${bundle}.`,
     alternates: { canonical: `/services/${page.slug}` },
   };
 }
@@ -42,7 +46,7 @@ export default async function ServicePage({
   const { slug } = await params;
   const page = getServicePage(slug);
   if (!page) notFound();
-  const { name, label, from } = servicePrice(page);
+  const { name, label, note } = servicePrice(page);
 
   return (
     <PageShell>
@@ -68,9 +72,7 @@ export default async function ServicePage({
       >
         <p className="font-display text-price text-hivis">
           {label}
-          <span className="ml-2 font-sans text-sm font-normal text-white/75">
-            {from ? "confirmed by phone, GST incl." : "single-storey home, GST incl."}
-          </span>
+          <span className="ml-2 font-sans text-sm font-normal text-white/75">{note}</span>
         </p>
         {page.body.map((para) => (
           <p key={para} className="max-w-prose text-white/85">

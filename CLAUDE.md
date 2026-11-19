@@ -49,6 +49,13 @@ Data:
   in the FAQ, nothing more). Patios are no longer a listed service.
 - Headline offer: the Exterior Refresh bundle (see pricing.json). Fixed
   prices, shown up front — no ranges, no "confirmed on site".
+- Driveways are priced by how many cars fit (owner's call, 19 Nov 2026,
+  replacing per-m² pricing): 1 or 2 cars $250, 3 cars $370, 4 cars (two
+  wide, two long) $490, bigger by phone. Bundles include up to 2 cars and add
+  the difference. Sizes are in pricing.json; the booking form asks only when
+  the job includes the driveway.
+- Exterior Refresh duration: "about 4 to 6 hours" (owner's ballpark,
+  19 Nov 2026).
 - Gutter guard is invoiced as its own line and kept under the $3,300 QBCC
   threshold, so Large is the biggest standard package; bigger is quoted by
   phone.

@@ -19,7 +19,7 @@ We already deliver to your street, so there's no call-out fee and no quote visit
 **What's in the Exterior Refresh**
 
 - House soft wash: walls, eaves and frames
-- Driveway and paths pressure cleaned, up to 60 m²
+- Driveway and paths pressure cleaned, up to 2 cars
 - Gutters cleaned, debris bagged and taken away
 - Exterior windows cleaned, frames and screens rinsed
 
@@ -30,7 +30,7 @@ Bought separately: $1,070. Together: $790.
 1. Pick your day. We book whole streets on set days.
 2. Pay a $100 deposit to hold it.
 3. Two of us arrive in the morning. One on the gutters and windows, one on the wash and driveway.
-4. Done in four to five hours. You get before-and-after photos and pay the balance.
+4. Done in about 4 to 6 hours. You get before-and-after photos and pay the balance. (Owner, 19 Nov 2026: "ballpark 4 to 6 hours", replacing "four to five".)
 
 **Gutter guard**
 
@@ -66,9 +66,19 @@ Beside it: Rather talk first? Call or text, or leave your number and we'll call 
 
 Mould, salt and grime come off with a low-pressure wash and a cleaning solution that kills mould at the root, so your paint and render aren't damaged and the clean lasts longer. Walls, eaves, frames and entry. We wet your garden beds before and after so plants are protected.
 
-### Driveway and paths, $250
+### Driveway and paths, from $250
 
-Up to 60 m² of concrete or pavers, cleaned with a rotary surface cleaner for an even finish with no stripes. Extra area $4 per m². Oil stains pre-treated where possible.
+Concrete or pavers, cleaned with a rotary surface cleaner for an even finish with no stripes. Oil stains pre-treated where possible.
+
+Priced by how many cars fit on the driveway (owner's call, 19 Nov 2026, replacing "up to 60 m², then $4 per extra m²"):
+
+| Driveway | On its own | In a bundle |
+|---|---|---|
+| 1 or 2 cars | $250 | included |
+| 3 cars | $370 | +$120 |
+| 4 cars (two wide, two long) | $490 | +$240 |
+
+Bigger than 4 cars? We'll confirm the price by phone.
 
 ### Gutter clean, $190
 
@@ -181,6 +191,7 @@ Then the bundle card, the services list, How it works, and the Book button.
 Form fields, choices first and contact details last (Nov 2026):
 
 - What would you like? Exterior Refresh / Full Exterior / Gutter guard (Small, Medium, Large, not sure) / Single services (checkboxes: house wash, driveway, gutter clean, windows)
+- Driveway size: 1 or 2 cars / 3 cars / 4 cars (two wide, two long) / bigger than 4 cars (show only when the job includes the driveway; defaults to 1 or 2 cars)
 - Storeys: single / double
 - Roof type: tile / metal / not sure (show only for gutter guard)
 - Suburb (select from service-areas.json, plus "Other")

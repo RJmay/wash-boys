@@ -19,14 +19,20 @@ import { isFilled, SHOW_PLACEHOLDERS } from "@/data/placeholders";
 import {
   ADD_ONS,
   BUNDLES,
+  DRIVEWAY_LARGEST,
+  DRIVEWAY_OPTIONS,
+  drivewayExtra,
   formatPrice,
   GUTTER_GUARD,
+  includesDriveway,
   includesGutterGuard,
   itemName,
   packageLength,
   quote,
   servicePriceLabel,
   SERVICES_PRICED,
+  type DrivewaySize,
+  type DrivewaySizeOption,
   type GutterGuardSize,
   type PackageChoice,
   type ServiceId,
@@ -150,6 +156,7 @@ export function BookingForm({
   const [services, setServices] = useState<ServiceId[]>(initialServices);
   const [addOns, setAddOns] = useState<ServiceId[]>([]);
   const [ggSize, setGgSize] = useState<GutterGuardSize | undefined>(initialSize);
+  const [drivewaySize, setDrivewaySize] = useState<DrivewaySize>(DRIVEWAY_OPTIONS[0].id);
   const [date, setDate] = useState("");
   const [source, setSource] = useState("");
   const [page, setPage] = useState("");
@@ -180,14 +187,23 @@ export function BookingForm({
   const isOther = suburb === OTHER;
   const days = streetDays[suburb] ?? [];
   const showRoof = includesGutterGuard({ package: choice });
+  const showDriveway = includesDriveway({ package: choice, services });
 
   const priced = quote({
     package: choice,
     gutterGuardSize: choice === "gutter-guard" ? (ggSize ?? "not-sure") : undefined,
     services: choice === "single" ? services : undefined,
     addOns: choice === "single" ? undefined : addOns,
+    drivewaySize: showDriveway ? drivewaySize : undefined,
     storeys,
   });
+
+  /** In a bundle a size is what it adds; on its own it is the price. */
+  const drivewayAside = (option: DrivewaySizeOption) => {
+    if (choice === "single") return formatPrice(option.price);
+    const extra = drivewayExtra(option);
+    return extra === 0 ? "Included" : `+${formatPrice(extra)}`;
+  };
   const hasSelection = choice !== "single" || services.length > 0;
 
   const errors = state.status === "error" ? state.errors : {};
@@ -320,6 +336,36 @@ export function BookingForm({
             </div>
           )}
         </Fieldset>
+
+        {showDriveway ? (
+          <Fieldset legend="Driveway size">
+            <p className="-mt-1 text-sm text-ink-muted">How many cars fit on your driveway?</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {DRIVEWAY_OPTIONS.map((option) => (
+                <Choice
+                  key={option.id}
+                  name="driveway_size"
+                  value={option.id}
+                  checked={drivewaySize === option.id}
+                  onChange={() => setDrivewaySize(option.id)}
+                  aside={drivewayAside(option)}
+                  detail={option.detail}
+                >
+                  {option.name}
+                </Choice>
+              ))}
+              <Choice
+                name="driveway_size"
+                value="bigger"
+                checked={drivewaySize === "bigger"}
+                onChange={() => setDrivewaySize("bigger")}
+                aside="By phone"
+              >
+                Bigger than {DRIVEWAY_LARGEST.cars} cars
+              </Choice>
+            </div>
+          </Fieldset>
+        ) : null}
 
         <Fieldset legend="Storeys">
           <div className="flex gap-2">

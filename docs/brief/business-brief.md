@@ -44,6 +44,6 @@ Plain, friendly, confident. Short sentences. Talk about the customer's house, no
 
 ## Key numbers (for reference, not for the site)
 
-- Exterior Refresh: $790, about 4 to 5 hours on site for two people on a typical single-storey 3 to 4 bedroom home (revised Nov 2026 from "about 3 hours", which only holds for small homes). Worked from the quote engine's throughput: house wash ~185 m² at 70 m²/h (~2.6 h) then driveway 60 m² at 35 m²/h (~1.7 h) on the washer, gutters and windows (~2.5 h) on the ladder alongside, plus setup and pack-down. A 7am start still finishes before midday.
+- Exterior Refresh: $790, a ballpark of 4 to 6 hours on site for two people, about 5 on a typical single-storey 3 to 4 bedroom home (owner, 19 Nov 2026; was "4 to 5 hours", and before that "about 3 hours", which only holds for small homes). Bigger driveways and homes push it toward 6. Worked from the quote engine's throughput: house wash ~185 m² at 70 m²/h (~2.6 h) then driveway 60 m² at 35 m²/h (~1.7 h) on the washer, gutters and windows (~2.5 h) on the ladder alongside, plus setup and pack-down. A 7am start still finishes before midday.
 - Target: 6 jobs a week in the first months.
 - First flyer drops: Aroona, then Buderim, from mid-November 2026.

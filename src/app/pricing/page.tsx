@@ -4,6 +4,7 @@ import { PageShell } from "@/components/site/chrome";
 import {
   BundleCards,
   Closing,
+  DrivewayTable,
   GutterGuardTable,
   ServicePriceList,
 } from "@/components/site/sections";
@@ -12,6 +13,7 @@ import { PRICE_TABLE_NOTE } from "@/data/copy";
 import {
   DEPOSITS,
   DOUBLE_STOREY,
+  DRIVEWAY_OVER_MAX_NOTE,
   formatPrice,
   GUTTER_GUARD,
   HEADLINE_BUNDLE,
@@ -49,6 +51,12 @@ export default function PricingPage() {
             <div className="mt-8">
               <ServicePriceList />
             </div>
+            <h3 className="mt-10 font-semibold text-ink">Driveway sizes</h3>
+            <p className="mt-1 text-sm text-ink-muted">Priced by how many cars fit on it.</p>
+            <div className="mt-4">
+              <DrivewayTable />
+            </div>
+            <p className="mt-4 text-sm text-ink-muted">{DRIVEWAY_OVER_MAX_NOTE}</p>
           </div>
           <div>
             <SectionHeader eyebrow="Gutter guard" title="Fitted, by gutter length" />

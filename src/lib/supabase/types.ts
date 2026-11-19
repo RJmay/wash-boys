@@ -113,6 +113,8 @@ export type BookingRow = {
   package: "exterior-refresh" | "full-exterior" | "gutter-guard" | "single" | null;
   gutter_guard_size: "small" | "medium" | "large" | "not-sure" | null;
   roof_type: "tile" | "metal" | "not-sure" | null;
+  // 0006_driveway_size
+  driveway_size: "1-2-cars" | "3-cars" | "4-cars" | "bigger" | null;
   quoted_price: number | null;
   price_lines: Json | null;
   deposit_amount: number | null;
@@ -232,6 +234,7 @@ export type Database = {
         | "package"
         | "gutter_guard_size"
         | "roof_type"
+        | "driveway_size"
         | "quoted_price"
         | "price_lines"
         | "deposit_amount"

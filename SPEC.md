@@ -136,8 +136,9 @@ sides, logs `book_done`. Then:
 1. **Deposit step:** $100 cleaning / $300 anything with gutter guard, by
    bank transfer with the reference. `deposit_status` starts `pending`; the
    owner marks it paid. Each detail has a Copy button for the banking app.
-   Until the bank details are filled, production says "We'll text you the
-   bank details", the same as the confirmation email.
+   The account is in `src/data/business.ts`. If it were ever blanked back to
+   a placeholder, production would say "We'll text you the bank details",
+   the same as the confirmation email.
 2. **Confirmation:** "You're booked for [date]. We'll text you the day
    before."
 

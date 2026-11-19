@@ -1,8 +1,8 @@
 /**
  * Every `[PLACEHOLDER]` on the site, in one place.
  *
- * These are things the owner still has to supply (warranty wording, policies,
- * bank details). In development each renders exactly as written here, in a
+ * These are things the owner still has to supply (warranty wording,
+ * policies). In development each renders exactly as written here, in a
  * dashed outline, so nobody mistakes it for finished copy. In a production
  * build an unfilled one is left off the page entirely.
  *
@@ -20,10 +20,6 @@ export const PLACEHOLDERS = {
   cancellationFaq: "[PLACEHOLDER: change, cancellation and deposit refund policy]",
   /** FAQ "What if I'm not happy with something?". The owner's call. */
   notHappyFaq: "[PLACEHOLDER: what happens if a customer isn't happy]",
-  /** Deposit step and confirmation email. */
-  bankAccountName: "[ACCOUNT NAME]",
-  bankBsb: "[BSB]",
-  bankAccountNumber: "[ACCOUNT NUMBER]",
 } as const;
 
 export function isFilled(value: string): boolean {

@@ -2,13 +2,10 @@
  * Single source of truth for business facts used in copy, schema.org markup
  * and transactional email.
  *
- * Phone, ABN, email and domain all live here and nowhere else. They are real;
- * the flyer preflight checks them before it will write print artwork. Bank
- * details for the deposit are still placeholders - see src/data/placeholders.ts
- * for the full list of what is still to fill.
+ * Phone, ABN, email, domain and the deposit bank account all live here and
+ * nowhere else. They are real; the flyer preflight checks them before it will
+ * write print artwork. What is still to fill is in src/data/placeholders.ts.
  */
-
-import { PLACEHOLDERS } from "./placeholders";
 
 export const BUSINESS = {
   name: "Wash Boys",
@@ -37,12 +34,14 @@ export const BUSINESS = {
 
   /**
    * Deposit by bank transfer. The booking reference goes in the transfer
-   * description so the owner can match it on the statement.
+   * description so the owner can match it on the statement. The account
+   * name must match the bank's records exactly, or the customer's banking
+   * app warns them the name doesn't match (Confirmation of Payee).
    */
   bank: {
-    accountName: PLACEHOLDERS.bankAccountName,
-    bsb: PLACEHOLDERS.bankBsb,
-    accountNumber: PLACEHOLDERS.bankAccountNumber,
+    accountName: "Ryan May",
+    bsb: "814-282",
+    accountNumber: "51826963",
   },
 
   /** Said on every page that shows a price. */

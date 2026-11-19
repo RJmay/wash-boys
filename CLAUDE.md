@@ -54,8 +54,8 @@ Data:
   phone.
 - Deposit by **bank transfer** (no Stripe): $100 cleaning, $300 anything
   with gutter guard (from pricing.json). The booking reference (`WB-XXXXXX`)
-  goes on the transfer; the owner marks `deposit_status` paid. Bank details
-  are placeholders in `placeholders.ts` until supplied.
+  goes on the transfer; the owner marks `deposit_status` paid. The bank
+  account (supplied 19 Nov 2026) is in `business.ts`.
 - Two people, the same two every job; most jobs done in one morning. We book
   whole streets on set days — no call-out fee, no quote visit.
 - **Must not claim until true:** reviews or star ratings, years of

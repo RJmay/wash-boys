@@ -215,20 +215,7 @@ export function BookingForm({
     );
   }
 
-  if (state.status === "enquiry") {
-    return (
-      <div className="max-w-2xl rounded-2xl border border-line bg-surface p-6 sm:p-8">
-        <p className="display-caps text-section text-harbour">Thanks, we&apos;ll call you</p>
-        <p className="mt-3 text-ink">
-          We&apos;re not booking {state.suburb} streets yet. We have your details and will call
-          you about a day.
-        </p>
-        <Link href="/" className={`${ctaQuiet} mt-6`}>
-          Back to the site
-        </Link>
-      </div>
-    );
-  }
+  if (state.status === "enquiry") return <EnquiryThanks suburb={state.suburb} />;
 
   const busy = pending || preparing;
 
@@ -572,6 +559,26 @@ export function BookingForm({
 /** Digits only: what a banking app's BSB and account fields accept. */
 const digits = (value: string) => value.replace(/\D/g, "");
 
+/**
+ * The form is long and each step after it is short. Swapping one for the
+ * other left a phone scrolled down to the footer, and the customer never saw
+ * their reference or the bank details. So each step brings itself to the top
+ * when it appears, and takes focus so a screen reader reads it out.
+ */
+function useStepInView() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.scrollIntoView({ block: "start" });
+    el.focus({ preventScroll: true });
+  }, []);
+  return ref;
+}
+
+const STEP_CARD =
+  "max-w-2xl scroll-mt-24 rounded-2xl border border-line bg-surface p-6 focus:outline-none sm:p-8";
+
 function DepositStep({ booking, onDone }: { booking: BookingSuccess; onDone: () => void }) {
   const { accountName, bsb, accountNumber } = BUSINESS.bank;
   const bankReady = [accountName, bsb, accountNumber].every(isFilled);
@@ -591,9 +598,10 @@ function DepositStep({ booking, onDone }: { booking: BookingSuccess; onDone: () 
     ["Reference", booking.reference, booking.reference],
     ["Amount", formatPrice(booking.deposit), String(booking.deposit)],
   ];
+  const ref = useStepInView();
 
   return (
-    <div className="max-w-2xl rounded-2xl border border-line bg-surface p-6 sm:p-8">
+    <div ref={ref} tabIndex={-1} className={STEP_CARD}>
       <p className="text-sm font-semibold tracking-wide text-harbour uppercase">Step 2 of 2</p>
       <p className="display-caps mt-1 text-section text-harbour">
         {showBank ? "Pay your deposit" : "Your deposit"}
@@ -646,8 +654,9 @@ function DepositStep({ booking, onDone }: { booking: BookingSuccess; onDone: () 
 }
 
 function Confirmation({ booking }: { booking: BookingSuccess }) {
+  const ref = useStepInView();
   return (
-    <div className="max-w-2xl rounded-2xl border border-line bg-surface p-6 sm:p-8">
+    <div ref={ref} tabIndex={-1} className={STEP_CARD}>
       <p className="display-caps text-section text-harbour">
         You&apos;re booked for {formatLongDate(booking.date)}.
       </p>
@@ -655,6 +664,22 @@ function Confirmation({ booking }: { booking: BookingSuccess }) {
       <p className="mt-3 text-sm text-ink-muted">
         Booking reference {booking.reference}. We call if we need to check size, storeys or
         access. Questions? Call {BUSINESS.phone.display}.
+      </p>
+      <Link href="/" className={`${ctaQuiet} mt-6`}>
+        Back to the site
+      </Link>
+    </div>
+  );
+}
+
+function EnquiryThanks({ suburb }: { suburb: string }) {
+  const ref = useStepInView();
+  return (
+    <div ref={ref} tabIndex={-1} className={STEP_CARD}>
+      <p className="display-caps text-section text-harbour">Thanks, we&apos;ll call you</p>
+      <p className="mt-3 text-ink">
+        We&apos;re not booking {suburb} streets yet. We have your details and will call you about
+        a day.
       </p>
       <Link href="/" className={`${ctaQuiet} mt-6`}>
         Back to the site

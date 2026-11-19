@@ -56,8 +56,8 @@ Data:
   not size prices (the reasoning is in `drivewayOptions()` in pricing.ts).
   Bundles include up to 2 cars and add the difference. The booking form asks
   only when the job includes the driveway.
-- Exterior Refresh duration: "4 to 6 hours, ballpark" (owner's wording,
-  19 Nov 2026).
+- Exterior Refresh duration: "Finished in the ballpark of 4 to 6 hours"
+  (owner's wording, 19 Nov 2026).
 - Gutter guard is invoiced as its own line and kept under the $3,300 QBCC
   threshold, so Large is the biggest standard package; bigger is quoted by
   phone.

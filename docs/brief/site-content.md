@@ -30,7 +30,7 @@ Bought separately: $1,070. Together: $790.
 1. Pick your day. We book whole streets on set days.
 2. Pay a $100 deposit to hold it.
 3. Two of us arrive in the morning. One on the gutters and windows, one on the wash and driveway.
-4. Done in 4 to 6 hours, ballpark. You get before-and-after photos and pay the balance. (Owner's wording, 19 Nov 2026, replacing "four to five hours".)
+4. Finished in the ballpark of 4 to 6 hours. You get before-and-after photos and pay the balance. (Owner's wording, 19 Nov 2026, replacing "four to five hours".)
 
 **Gutter guard**
 

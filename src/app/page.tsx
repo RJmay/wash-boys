@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   title: {
     absolute: "House Washing, Gutters & Windows, Sunshine Coast | Wash Boys",
   },
-  description: `House wash, driveway, gutters and windows in one morning: ${formatPrice(HEADLINE_BUNDLE.price)} fixed price for a single-storey home. No call-out fee, no quote visit. Aroona-based, Sunshine Coast.`,
+  description: `House wash, driveway, gutters and windows in one day:${formatPrice(HEADLINE_BUNDLE.price)} fixed price for a single-storey home. No call-out fee, no quote visit. Aroona-based, Sunshine Coast.`,
   alternates: { canonical: "/" },
 };
 
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <PageShell>
-      <Hero heading="Your whole exterior, done in one morning." after={<JustGuttersLine />}>
+      <Hero heading="Your whole exterior, done in one day." after={<JustGuttersLine />}>
         <p className="text-lg text-white/90">
           House wash, driveway, gutters and windows.{" "}
           <PriceTag amount={HEADLINE_BUNDLE.price} />, fixed price, single-storey home.

@@ -93,7 +93,7 @@ export default async function ServicePage({
           id="bundle-heading"
           eyebrow="Save with a bundle"
           title="Getting more than one thing done?"
-          lead={`The ${HEADLINE_BUNDLE.name} does the house, driveway, gutters and windows in one morning.`}
+          lead={`The ${HEADLINE_BUNDLE.name} does the house, driveway, gutters and windows in one day.`}
         />
         <BundleCards ids={["exterior-refresh", "full-exterior"]} />
       </Section>

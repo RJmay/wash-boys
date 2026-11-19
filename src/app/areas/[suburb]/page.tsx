@@ -34,7 +34,7 @@ export async function generateMetadata({
 
   return {
     title: `House Washing & Gutter Cleaning ${suburb.name}`,
-    description: `House washing, pressure cleaning, gutter cleaning and gutter guard in ${suburb.name} ${suburb.postcode}. ${HEADLINE_BUNDLE.name} ${formatPrice(HEADLINE_BUNDLE.price)}, fixed price, done in one morning.`,
+    description: `House washing, pressure cleaning, gutter cleaning and gutter guard in ${suburb.name} ${suburb.postcode}. ${HEADLINE_BUNDLE.name} ${formatPrice(HEADLINE_BUNDLE.price)}, fixed price, done in one day.`,
     alternates: { canonical: `/areas/${suburb.slug}` },
   };
 }

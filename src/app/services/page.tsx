@@ -57,7 +57,7 @@ export default function ServicesPage() {
         lead={
           <p>
             Fixed prices for a single-storey home, GST included. Or get the house, driveway,
-            gutters and windows done in one morning with the{" "}
+            gutters and windows done in one day with the{" "}
             <Link href="/pricing" className="font-semibold text-white underline underline-offset-4">
               {HEADLINE_BUNDLE.name}
             </Link>

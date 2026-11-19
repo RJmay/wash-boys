@@ -8,7 +8,7 @@ Business name, phone, email and ABN are placeholders: `[BUSINESS NAME]`, `[PHONE
 
 **Hero**
 
-# Your whole exterior, done in one morning.
+# Your whole exterior, done in one day.
 
 House wash, driveway, gutters and windows. **$790**, fixed price, single-storey home.
 
@@ -30,7 +30,7 @@ Bought separately: $1,070. Together: $790.
 1. Pick your day. We book whole streets on set days.
 2. Pay a $100 deposit to hold it.
 3. Two of us arrive in the morning. One on the gutters and windows, one on the wash and driveway.
-4. Done in about 4 to 6 hours. You get before-and-after photos and pay the balance. (Owner, 19 Nov 2026: "ballpark 4 to 6 hours", replacing "four to five".)
+4. Done in 4 to 6 hours, ballpark. You get before-and-after photos and pay the balance. (Owner's wording, 19 Nov 2026, replacing "four to five hours".)
 
 **Gutter guard**
 
@@ -42,7 +42,7 @@ Buderim, Little Mountain, Aroona, Mountain Creek, Currimundi, Pelican Waters and
 
 **Why book us** (the positioning from the business brief, replacing the old trust strip, Nov 2026)
 
-- One morning, one fixed price. The whole exterior done in one go. No quote visit, no call-out fee.
+- One day, one fixed price. The whole exterior done in one go. No quote visit, no call-out fee.
 - Why it's cheaper. We already deliver to your street, and we book whole streets on the same days, so there's no travel cost to pass on.
 - Local and accountable. Two locals, the same two people on every job.
 - Careful with your home. Soft wash on painted surfaces, not high pressure. Wash water kept out of the street drains.
@@ -70,15 +70,17 @@ Mould, salt and grime come off with a low-pressure wash and a cleaning solution 
 
 Concrete or pavers, cleaned with a rotary surface cleaner for an even finish with no stripes. Oil stains pre-treated where possible.
 
-Priced by how many cars fit on the driveway (owner's call, 19 Nov 2026, replacing "up to 60 m², then $4 per extra m²"):
+Priced by how many cars fit on the driveway (owner's call, 19 Nov 2026). Each size is the same $4 per m² past 60 m² as before, applied to the size's typical area (driveway, council crossover and front path):
 
-| Driveway | On its own | In a bundle |
-|---|---|---|
-| 1 or 2 cars | $250 | included |
-| 3 cars | $370 | +$120 |
-| 4 cars (two wide, two long) | $490 | +$240 |
+| Driveway | Area | On its own | In a bundle |
+|---|---|---|---|
+| 1 or 2 cars | up to 60 m² | $250 | included |
+| 3 cars | about 75 m² | $310 | +$60 |
+| 4 cars (two wide, two long) | about 90 m² | $370 | +$120 |
 
 Bigger than 4 cars? We'll confirm the price by phone.
+
+How the areas were worked out: QLD lots of 450 m² and over set the garage 6 m back (QDC MP1.2), a double is about 5.7 m wide, a crossover is about 4 m wide across a ~4 m verge, and a front path is about 7 m². A double comes to ~57 m²; each car space past two adds ~16 m², whatever the layout.
 
 ### Gutter clean, $190
 

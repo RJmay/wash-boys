@@ -21,6 +21,7 @@ import {
   BUNDLES,
   DRIVEWAY_LARGEST,
   DRIVEWAY_OPTIONS,
+  drivewayDetail,
   drivewayExtra,
   formatPrice,
   GUTTER_GUARD,
@@ -349,7 +350,7 @@ export function BookingForm({
                   checked={drivewaySize === option.id}
                   onChange={() => setDrivewaySize(option.id)}
                   aside={drivewayAside(option)}
-                  detail={option.detail}
+                  detail={drivewayDetail(option)}
                 >
                   {option.name}
                 </Choice>

@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/site/ui";
 import { HOW_IT_WORKS_FULL } from "@/data/copy";
 import { DEPOSITS, formatPrice } from "@/data/pricing";
 
-const DESCRIPTION = `Book a day we're in your suburb, pay a ${formatPrice(DEPOSITS.cleaning)} deposit, and two of us clean the outside of your home in one morning. You don't need to be home.`;
+const DESCRIPTION = `Book a day we're in your suburb, pay a ${formatPrice(DEPOSITS.cleaning)} deposit, and two of us clean the outside of your home in one day. You don't need to be home.`;
 
 export const metadata: Metadata = {
   title: "How It Works",

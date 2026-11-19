@@ -16,6 +16,7 @@ import {
   DEPOSITS,
   DOUBLE_STOREY,
   DRIVEWAY_OPTIONS,
+  drivewayDetail,
   drivewayExtra,
   formatPrice,
   getPricedService,
@@ -299,7 +300,7 @@ export function HowItWorksSteps({
 export function WhyUs({ tone = "grey" }: { tone?: Tone }) {
   return (
     <Section labelledBy="why-heading" tone={tone}>
-      <SectionHeader id="why-heading" eyebrow="Why book us" title="Two locals, one morning, one price" />
+      <SectionHeader id="why-heading" eyebrow="Why book us" title="Two locals, one day, one price" />
       <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {WHY_US.map((point) => (
           <li key={point.title} className={card}>
@@ -729,9 +730,9 @@ export function DrivewayTable() {
               <tr key={option.id}>
                 <th scope="row" className="px-4 py-4 font-semibold text-ink sm:px-5">
                   {option.name}
-                  {option.detail ? (
-                    <span className="block text-sm font-normal text-ink-muted">{option.detail}</span>
-                  ) : null}
+                  <span className="block text-sm font-normal text-ink-muted">
+                    {drivewayDetail(option)}
+                  </span>
                 </th>
                 <td className="px-4 py-4 text-right font-display text-xl text-harbour sm:px-5">
                   {formatPrice(option.price)}

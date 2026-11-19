@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     default: `${BUSINESS.name} | Exterior home cleaning, Sunshine Coast`,
     template: `%s | ${BUSINESS.name}`,
   },
-  description: `House wash, driveway, gutters and windows in one morning. ${HEADLINE_BUNDLE.name} ${formatPrice(HEADLINE_BUNDLE.price)}, fixed price. Sunshine Coast, based in Aroona.`,
+  description: `House wash, driveway, gutters and windows in one day.${HEADLINE_BUNDLE.name} ${formatPrice(HEADLINE_BUNDLE.price)}, fixed price. Sunshine Coast, based in Aroona.`,
   openGraph: {
     siteName: BUSINESS.name,
     locale: "en_AU",

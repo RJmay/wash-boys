@@ -20,23 +20,31 @@ export type BundleId = "exterior-refresh" | "full-exterior" | "annual-refresh";
 export const DRIVEWAY_SIZES = ["1-2-cars", "3-cars", "4-cars", "bigger"] as const;
 export type DrivewaySize = (typeof DRIVEWAY_SIZES)[number];
 
-export type DrivewaySizeOption = {
+/** A driveway size as pricing.json lists it: an area, not a price. */
+type DrivewaySizeRaw = {
   id: Exclude<DrivewaySize, "bigger">;
   /** Most cars this size fits. */
   cars: number;
   name: string;
   /** How the cars sit, e.g. "two wide, two long". */
   detail?: string;
-  price: number;
+  /** Driveway, council crossover and front path together. */
+  area_m2: number;
 };
+
+/** A driveway size with its price, worked out from the area. */
+export type DrivewaySizeOption = DrivewaySizeRaw & { price: number };
 
 export type PricedService = {
   id: ServiceId;
   name: string;
   price: number;
   description: string;
+  /** Area the price covers, and the rate past it (driveway). */
+  includedArea_m2?: number;
+  extraPerM2?: number;
   /** Priced by size (driveway). `price` is the smallest size. */
-  sizes?: DrivewaySizeOption[];
+  sizes?: DrivewaySizeRaw[];
   /** What happens past the largest size. */
   overMaxNote?: string;
   /** True when `price` is a starting price, confirmed by phone (fences). */
@@ -108,10 +116,28 @@ export function getPricedService(id: string): PricedService | undefined {
 
 // ── Driveway sizes ────────────────────────────────────────────────────────
 
+/**
+ * Each size's price comes from its area at the driveway rate: the base price
+ * covers `includedArea_m2`, and every m² past it is `extraPerM2`. So a size's
+ * price can never drift from its square metres.
+ *
+ * Areas (worked out 19 Nov 2026 at the owner's request) are driveway + crossover + front
+ * path. QLD lots of 450 m²+ set the garage 6 m back (QDC MP1.2); a double is
+ * about 5.7 m wide; a crossover is about 4 m wide across a ~4 m verge (16 m²);
+ * a front path about 7 m². That makes 2 cars ~57 m², and each car space past
+ * two adds about 16 m² whatever the layout: 3 cars ~75 m² (three wide, or two
+ * wide plus one behind), 4 cars ~90 m² (two wide, two long, ~11.5 m deep).
+ */
 function drivewayOptions(): DrivewaySizeOption[] {
-  const sizes = getPricedService("driveway")?.sizes;
-  if (!sizes?.length) throw new Error("pricing.json: the driveway has no sizes");
-  return sizes;
+  const driveway = getPricedService("driveway");
+  const sizes = driveway?.sizes;
+  if (!driveway || !sizes?.length) throw new Error("pricing.json: the driveway has no sizes");
+  const included = driveway.includedArea_m2 ?? 0;
+  const rate = driveway.extraPerM2 ?? 0;
+  return sizes.map((size) => ({
+    ...size,
+    price: driveway.price + rate * Math.max(0, size.area_m2 - included),
+  }));
 }
 
 /** 1 or 2 cars, 3 cars, 4 cars - smallest first, from pricing.json. */
@@ -129,6 +155,18 @@ export function drivewayExtra(option: DrivewaySizeOption): number {
 /** "4 cars (two wide, two long)". */
 export function drivewaySizeName(option: DrivewaySizeOption): string {
   return option.detail ? `${option.name} (${option.detail})` : option.name;
+}
+
+/** "up to 60 m²" for the base size, "about 90 m²" past it. */
+export function drivewayArea(option: DrivewaySizeOption): string {
+  return option.id === DRIVEWAY_BASE.id
+    ? `up to ${option.area_m2} m²`
+    : `about ${option.area_m2} m²`;
+}
+
+/** The muted line under a size: "two wide, two long, about 90 m²". */
+export function drivewayDetail(option: DrivewaySizeOption): string {
+  return [option.detail, drivewayArea(option)].filter(Boolean).join(", ");
 }
 
 /** The size a booking resolves to. Not given means the base size. */

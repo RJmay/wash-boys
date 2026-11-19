@@ -49,12 +49,14 @@ Data:
   in the FAQ, nothing more). Patios are no longer a listed service.
 - Headline offer: the Exterior Refresh bundle (see pricing.json). Fixed
   prices, shown up front — no ranges, no "confirmed on site".
-- Driveways are priced by how many cars fit (owner's call, 19 Nov 2026,
-  replacing per-m² pricing): 1 or 2 cars $250, 3 cars $370, 4 cars (two
-  wide, two long) $490, bigger by phone. Bundles include up to 2 cars and add
-  the difference. Sizes are in pricing.json; the booking form asks only when
-  the job includes the driveway.
-- Exterior Refresh duration: "about 4 to 6 hours" (owner's ballpark,
+- Driveways are priced by how many cars fit (owner's call, 19 Nov 2026):
+  1 or 2 cars (up to 60 m²) $250, 3 cars (~75 m²) $310, 4 cars (two wide,
+  two long, ~90 m²) $370, bigger by phone. Each size's price is derived from
+  its area at the existing $4/m² past 60 m², so pricing.json stores areas,
+  not size prices (the reasoning is in `drivewayOptions()` in pricing.ts).
+  Bundles include up to 2 cars and add the difference. The booking form asks
+  only when the job includes the driveway.
+- Exterior Refresh duration: "4 to 6 hours, ballpark" (owner's wording,
   19 Nov 2026).
 - Gutter guard is invoiced as its own line and kept under the $3,300 QBCC
   threshold, so Large is the biggest standard package; bigger is quoted by
@@ -63,7 +65,8 @@ Data:
   with gutter guard (from pricing.json). The booking reference (`WB-XXXXXX`)
   goes on the transfer; the owner marks `deposit_status` paid. The bank
   account (supplied 19 Nov 2026) is in `business.ts`.
-- Two people, the same two every job; most jobs done in one morning. We book
+- Two people, the same two every job; most jobs done in one day (owner,
+  19 Nov 2026: say "one day", never "one morning"). We arrive in the morning. We book
   whole streets on set days — no call-out fee, no quote visit.
 - **Must not claim until true:** reviews or star ratings, years of
   experience, "fully insured" or any cover amount, licences or

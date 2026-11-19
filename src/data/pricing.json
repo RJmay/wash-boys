@@ -59,10 +59,12 @@
       "id": "driveway",
       "name": "Driveway and paths",
       "price": 250,
+      "includedArea_m2": 60,
+      "extraPerM2": 4,
       "sizes": [
-        { "id": "1-2-cars", "cars": 2, "name": "1 or 2 cars", "price": 250 },
-        { "id": "3-cars", "cars": 3, "name": "3 cars", "price": 370 },
-        { "id": "4-cars", "cars": 4, "name": "4 cars", "detail": "two wide, two long", "price": 490 }
+        { "id": "1-2-cars", "cars": 2, "name": "1 or 2 cars", "area_m2": 60 },
+        { "id": "3-cars", "cars": 3, "name": "3 cars", "area_m2": 75 },
+        { "id": "4-cars", "cars": 4, "name": "4 cars", "detail": "two wide, two long", "area_m2": 90 }
       ],
       "overMaxNote": "Bigger than 4 cars? We'll confirm the price by phone.",
       "description": "Concrete or pavers, rotary surface cleaner"

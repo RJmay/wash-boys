@@ -2,7 +2,7 @@
 
 ## What the business is
 
-A two-person exterior home services business on the Sunshine Coast, Queensland, based in Aroona. One person works the ladder (gutters, windows, gutter guard); the other runs the washer (house soft wash, driveways and paths). Most jobs are finished in one morning.
+A two-person exterior home services business on the Sunshine Coast, Queensland, based in Aroona. One person works the ladder (gutters, windows, gutter guard); the other runs the washer (house soft wash, driveways and paths). Most jobs are finished in one day (owner, 19 Nov 2026: "one day", not "one morning").
 
 Services:
 
@@ -25,7 +25,7 @@ Owner-occupiers of detached houses in established, leafy suburbs: Buderim, Littl
 
 ## Positioning
 
-- **The whole exterior in one morning, one fixed price.** No quote visit, no call-out fee.
+- **The whole exterior in one day, one fixed price.** No quote visit, no call-out fee.
 - **Why it's cheaper:** we already deliver to your street, and we book whole streets on the same days, so there's no travel cost to pass on.
 - **Local and accountable:** two locals, the same two people on every job.
 - **Careful with your home:** soft wash on painted surfaces, not high pressure; wash water kept out of the street drains.
@@ -44,6 +44,6 @@ Plain, friendly, confident. Short sentences. Talk about the customer's house, no
 
 ## Key numbers (for reference, not for the site)
 
-- Exterior Refresh: $790, a ballpark of 4 to 6 hours on site for two people, about 5 on a typical single-storey 3 to 4 bedroom home (owner, 19 Nov 2026; was "4 to 5 hours", and before that "about 3 hours", which only holds for small homes). Bigger driveways and homes push it toward 6. Worked from the quote engine's throughput: house wash ~185 m² at 70 m²/h (~2.6 h) then driveway 60 m² at 35 m²/h (~1.7 h) on the washer, gutters and windows (~2.5 h) on the ladder alongside, plus setup and pack-down. A 7am start still finishes before midday.
+- Exterior Refresh: $790, a ballpark of 4 to 6 hours on site for two people, about 5 on a typical single-storey 3 to 4 bedroom home (owner, 19 Nov 2026; was "4 to 5 hours", and before that "about 3 hours", which only holds for small homes). Bigger driveways and homes push it toward 6. Worked from the quote engine's throughput: house wash ~185 m² at 70 m²/h (~2.6 h) then driveway 60 m² at 35 m²/h (~1.7 h) on the washer, gutters and windows (~2.5 h) on the ladder alongside, plus setup and pack-down. A 7am start finishes around midday, early afternoon at the top of the range.
 - Target: 6 jobs a week in the first months.
 - First flyer drops: Aroona, then Buderim, from mid-November 2026.

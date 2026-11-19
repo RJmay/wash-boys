@@ -30,7 +30,7 @@ export const HOW_IT_WORKS_SHORT: readonly { title: string; body: string }[] = [
     body: "One on the gutters and windows, one on the wash and driveway.",
   },
   {
-    title: "Done in about 4 to 6 hours.",
+    title: "Done in 4 to 6 hours, ballpark.",
     body: "You get before-and-after photos and pay the balance.",
   },
 ];
@@ -58,7 +58,7 @@ export const HOW_IT_WORKS_FULL: readonly { title: string; body: string }[] = [
  */
 export const WHY_US: readonly { title: string; body: string }[] = [
   {
-    title: "One morning, one fixed price.",
+    title: "One day, one fixed price.",
     body: "The whole exterior done in one go. No quote visit, no call-out fee.",
   },
   {

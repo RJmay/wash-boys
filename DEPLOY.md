@@ -52,8 +52,12 @@ Add these under **GitHub → repo → Settings → Secrets and variables → Act
 |---|---|---|
 | `CLOUDFLARE_API_TOKEN` | Secret | Cloudflare → My Profile → API Tokens → Create → **Edit Cloudflare Workers** template |
 | `CLOUDFLARE_ACCOUNT_ID` | Secret | Cloudflare dashboard → Workers & Pages → Account ID in the right sidebar |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Secret | Supabase → Settings → API (once it exists) |
-| `NEXT_PUBLIC_SUPABASE_URL` | Variable | Supabase → Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Variable (or Secret) | Supabase → Settings → API Keys → **Publishable key** (`sb_publishable_…`) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Variable | Supabase → Settings → Data API → Project URL |
+
+The Supabase **secret** key (`sb_secret_…` / `service_role`) never goes in
+GitHub. Variables are stored in plain text. It goes in Cloudflare only, as a
+Secret (section 3).
 | `NEXT_PUBLIC_SITE_URL` | Variable | Optional — defaults to `https://washboys.com.au` |
 
 The first two are all it needs to deploy. The Supabase ones can wait; the build
@@ -144,8 +148,8 @@ Then apply the schema:
 npx supabase db push
 ```
 
-or paste [supabase/migrations/0001_init.sql](supabase/migrations/0001_init.sql)
-into the SQL editor.
+or paste each file in [supabase/migrations/](supabase/migrations/) into the
+SQL editor, in order: `0001` through `0004`.
 
 After creating the owner account: **Authentication → Providers → Email →
 Enable signup: OFF**. The admin RLS policies trust any authenticated user, and

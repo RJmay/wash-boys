@@ -30,7 +30,7 @@ export const HOW_IT_WORKS_SHORT: readonly { title: string; body: string }[] = [
     body: "One on the gutters and windows, one on the wash and driveway.",
   },
   {
-    title: "Finished in the ballpark of 4 to 6 hours.",
+    title: "Finished in 4–6 hours.",
     body: "You get before-and-after photos and pay the balance.",
   },
 ];

@@ -13,7 +13,7 @@ import { logEvent } from "./events";
 import { sendBookingEmails, sendLeadAlert } from "@/lib/email";
 import { CAPACITY_PER_DAY } from "@/lib/street-days";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-import type { BookingStatus, Json } from "@/lib/supabase/types";
+import type { BookingStatus, Database, Json } from "@/lib/supabase/types";
 import { bookingSchema, fieldErrors, leadSchema } from "@/lib/validation";
 
 /**
@@ -72,7 +72,9 @@ function text(formData: FormData, key: string): string | undefined {
   return typeof value === "string" && value.trim() !== "" ? value : undefined;
 }
 
-const GENERIC_FAILURE = `We could not save that just now. Call us on ${BUSINESS.phone.display} and we will book you in.`;
+type BookingInsert = Database["public"]["Tables"]["bookings"]["Insert"];
+
+const GENERIC_FAILURE =`We could not save that just now. Call us on ${BUSINESS.phone.display} and we will book you in.`;
 
 /** True while the day has room. Fails open: a lookup error never blocks a booking. */
 async function dayHasRoom(date: string): Promise<boolean> {
@@ -235,11 +237,15 @@ export async function createBooking(
   let reference = "";
   try {
     const supabase = createAdminSupabase();
+    // Only sent when there is a driveway, and dropped if the column is not
+    // there yet (migration 0006 not run): the booking matters more than the
+    // column, and the size is in price_lines and the owner's email anyway.
+    let saveDrivewaySize = drivewaySize !== undefined;
 
     // A reference collision is vanishingly rare, but retry rather than fail.
     for (let attempt = 0; attempt < 3; attempt++) {
       reference = newReference();
-      const { error } = await supabase.from("bookings").insert({
+      const row: BookingInsert = {
         name: input.name,
         phone: input.phone,
         email: input.email,
@@ -257,7 +263,6 @@ export async function createBooking(
         storeys: input.storeys,
         package: input.package,
         gutter_guard_size: input.package === "gutter-guard" ? (input.gutter_guard_size ?? null) : null,
-        driveway_size: drivewaySize ?? null,
         roof_type: hasGutterGuard ? (input.roof_type ?? null) : null,
         quoted_price: priced.total,
         price_lines: priced.lines as unknown as Json,
@@ -266,7 +271,13 @@ export async function createBooking(
         deposit_amount: priced.deposit,
         deposit_status: "pending",
         reference,
-      });
+      };
+      const withSize: BookingInsert = saveDrivewaySize ? { ...row, driveway_size: drivewaySize } : row;
+      let { error } = await supabase.from("bookings").insert(withSize);
+      if (error && saveDrivewaySize && error.message?.includes("driveway_size")) {
+        saveDrivewaySize = false;
+        ({ error } = await supabase.from("bookings").insert(row));
+      }
       if (!error) break;
       // 23505 = unique violation on the reference; anything else is real.
       if (error.code !== "23505" || attempt === 2) throw error;
